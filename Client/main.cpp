@@ -1,12 +1,8 @@
-#include <locale>
-
 #include "asio.hpp"
 #include "Client.h"
 
 int main()
 {
-	setlocale(LC_ALL, "Rus");
-
 	//Config
 
 	char ip[] = "localhost";
@@ -16,6 +12,11 @@ int main()
 
 	Client client(io_context, ip, port);
 	client.Connect();
-	std::cout << "Ñåðâåð îòâåòèë: " << client.Send("Àíóñ") << std::endl;
+
+	while (true) {
+		std::string msg;
+		std::getline(std::cin, msg);
+		std::cout << "‘¥à¢¥à ®â¢¥â¨«: " << client.Send(msg) << std::endl;
+	}
 	return 0;
 }

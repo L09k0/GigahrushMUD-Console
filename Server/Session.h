@@ -4,7 +4,7 @@
 
 class Session : public std::enable_shared_from_this<Session> {
 private:
-	std::vector<char> buffer;
+	std::string buffer;
 	asio::ip::tcp::socket socket;
 
 public:
