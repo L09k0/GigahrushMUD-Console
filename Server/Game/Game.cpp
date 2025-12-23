@@ -21,14 +21,42 @@ namespace Gigahrush {
 		nlohmann::json ItemsConfig = js.readFile("Config/Items.json");
 
 		for (int i = 0; i < ItemsConfig.size(); i++) {
-			config.items.push_back(Item(
-				ItemsConfig[i]["id"],
-				ItemsConfig[i]["name"],
-				ItemsConfig[i]["description"],
-				ItemsConfig[i]["useDescription"],
-				Type(ItemsConfig[i]["type"]),
-				ItemsConfig[i]["canSpawn"]
-			));
+			std::unique_ptr<Item> item;
+
+			if (ItemsConfig[i]["type"] == 0) { //Component
+				item = std::make_unique<Component>(
+					ItemsConfig[i]["id"],
+					ItemsConfig[i]["name"],
+					ItemsConfig[i]["description"],
+					ItemsConfig[i]["useDescription"],
+					ItemsConfig[i]["canSpawn"]);
+			}
+			else if (ItemsConfig[i]["type"] == 1) {
+				item = std::make_unique<Weapon>(
+					ItemsConfig[i]["id"],
+					ItemsConfig[i]["name"],
+					ItemsConfig[i]["description"],
+					ItemsConfig[i]["useDescription"],
+					ItemsConfig[i]["canSpawn"]);
+			}
+			else if (ItemsConfig[i]["type"] == 2) {
+				item = std::make_unique<Food>(
+					ItemsConfig[i]["id"],
+					ItemsConfig[i]["name"],
+					ItemsConfig[i]["description"],
+					ItemsConfig[i]["useDescription"],
+					ItemsConfig[i]["canSpawn"]);
+			}
+			else if (ItemsConfig[i]["type"] == 3) {
+				item = std::make_unique<HealingItem>(
+					ItemsConfig[i]["id"],
+					ItemsConfig[i]["name"],
+					ItemsConfig[i]["description"],
+					ItemsConfig[i]["useDescription"],
+					ItemsConfig[i]["canSpawn"]);
+			}
+
+			config.items.push_back(std::move(item));
 			config.itemSpawnChances.push_back(SpawnChance(ItemsConfig[i]["id"], ItemsConfig[i]["spawnChance"]));
 		}
 
@@ -43,24 +71,24 @@ namespace Gigahrush {
 		nlohmann::json EnemiesConfig = js.readFile("Config/Enemies.json");
 
 		for (int i = 0; i < EnemiesConfig.size(); i++) {
-			std::vector<Item> loot;
+			std::vector<std::unique_ptr<Item>> loot;
 
 			for (int j = 0; j < EnemiesConfig[i]["loot"].size(); j++) {
 				for (int v = 0; v < config.items.size(); v++) {
-					if (config.items[v].ID == EnemiesConfig[i]["loot"][j]) {
-						loot.push_back(config.items[v]);
+					if (config.items[v]->ID == EnemiesConfig[i]["loot"][j]) {
+						loot.push_back(config.items[v]->clone());
 					}
 				}
 			}
 
-			config.enemies.push_back(Enemy(
+			config.enemies.push_back(std::make_unique<Enemy>(
 				EnemiesConfig[i]["id"],
 				EnemiesConfig[i]["name"],
 				EnemiesConfig[i]["description"],
 				EnemiesConfig[i]["replics"],
 				EnemiesConfig[i]["health"],
 				EnemiesConfig[i]["attack"], 
-				loot
+				std::move(loot)
 			));
 			config.enemySpawnChances.push_back(SpawnChance(EnemiesConfig[i]["id"], EnemiesConfig[i]["spawnChance"]));
 		}
@@ -79,8 +107,8 @@ namespace Gigahrush {
 				RoomsConfig[i]["id"],
 				RoomsConfig[i]["name"],
 				std::vector<std::string>{RoomsConfig[i]["description"]},
-				std::vector<Item>{},
-				std::vector<Enemy>{},
+				std::vector<std::unique_ptr<Item>>{},
+				std::vector<std::unique_ptr<Enemy>>{},
 				RoomsConfig[i]["isExit"]
 			));
 
@@ -111,6 +139,26 @@ namespace Gigahrush {
 		std::cout << "Crafts count: " << config.crafts.size() << std::endl << std::endl;
 	}
 
+	void Configurator::ShowAllConfig() {
+		//MapSize
+
+
+
+		//Items
+		
+
+
+		//Enemies
+		
+
+
+		//Rooms
+		
+
+
+		//Crafts
+	}
+
 	void Configurator::LoadConfig() {
 		std::cout << "=== Starting loading config ===" << std::endl << std::endl;
 
@@ -121,5 +169,7 @@ namespace Gigahrush {
 		LoadCrafts();
 
 		std::cout << "Config loaded!" << std::endl;
+
+		ShowAllConfig();
 	}
 }

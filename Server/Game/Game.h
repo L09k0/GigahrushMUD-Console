@@ -13,8 +13,8 @@ namespace Gigahrush {
 		std::vector<SpawnChance> roomSpawnChances;
 		std::vector<SpawnChance> enemySpawnChances;
 
-		std::vector<Item> items;
-		std::vector<Enemy> enemies;
+		std::vector<std::unique_ptr<Item>> items;
+		std::vector<std::unique_ptr<Enemy>> enemies;
 		std::vector<Room> rooms;
 	};
 
@@ -22,6 +22,7 @@ namespace Gigahrush {
 		public:
 			Config config;
 
+			void ShowAllConfig();
 			void LoadConfig();
 		private:
 			void LoadMapSize();

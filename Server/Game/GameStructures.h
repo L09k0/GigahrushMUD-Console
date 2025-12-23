@@ -1,9 +1,10 @@
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace Gigahrush {
 	enum Status { InBattle, NotInBattle };
-	enum Type { Component, Weapon, Food, Healing };
+	//enum Type { Component, Weapon, Food, Healing };
 
 	// Config Structures
 
@@ -31,6 +32,8 @@ namespace Gigahrush {
 
 	// Game Structures
 
+	struct Player;
+
 	struct Location {
 		int X;
 		int Y;
@@ -43,13 +46,60 @@ namespace Gigahrush {
 			std::string name;
 			std::string description;
 			std::string useDescription;
-			Type type;
 			bool canSpawn;
 
-			Item(int, std::string, std::string, std::string, Type, bool);
-			~Item();
+			Item(int, std::string, std::string, std::string, bool);
+			virtual ~Item();
+			virtual std::unique_ptr<Item> clone() const = 0;
+			virtual std::string use(Player&);
+	};
 
-			//std::string use(Player&);
+	class Component : public Item {
+		public:
+			std::string use(Player&) override;
+
+			Component(const Component& other) = default;
+			std::unique_ptr<Item> clone() const override {
+				return std::make_unique<Component>(*this);
+			}
+
+			Component(int, std::string, std::string, std::string, bool);
+	};
+
+	class Weapon : public Item {
+		public:
+			std::string use(Player&) override;
+
+			Weapon(const Weapon& other) = default;
+			std::unique_ptr<Item> clone() const override{
+				return std::make_unique<Weapon>(*this);
+			}
+
+			Weapon(int, std::string, std::string, std::string, bool);
+	};
+
+	class Food : public Item {
+		public:
+			std::string use(Player&) override;
+
+			Food(const Food& other) = default;
+			std::unique_ptr<Item> clone() const override {
+				return std::make_unique<Food>(*this);
+			}
+
+			Food(int, std::string, std::string, std::string, bool);
+	};
+
+	class HealingItem : public Item {
+		public:
+			std::string use(Player&) override;
+
+			HealingItem(const HealingItem& other) = default;
+			std::unique_ptr<Item> clone() const override {
+				return std::make_unique<HealingItem>(*this);
+			}
+
+			HealingItem(int, std::string, std::string, std::string, bool);
 	};
 
 	class Enemy {
@@ -61,9 +111,9 @@ namespace Gigahrush {
 			std::vector<std::string> replics; //–андомные реплики определенного врага
 			unsigned short int health;
 			unsigned short int attack;
-			std::vector<Item> loot;
+			std::vector<std::unique_ptr<Item>> loot;
 
-			Enemy(int, std::string, std::string, std::vector<std::string>, unsigned short int, unsigned short int, std::vector<Item>);
+			Enemy(int, std::string, std::string, std::vector<std::string>, unsigned short int, unsigned short int, std::vector<std::unique_ptr<Item>>&&);
 			~Enemy();
 
 			//std::string attack(Player&);
@@ -72,7 +122,7 @@ namespace Gigahrush {
 	struct Player {
 		std::string username;
 		Location location;
-		std::vector<Item> inventory;
+		std::vector<std::unique_ptr<Item>> inventory;
 		Status status;
 	};
 
@@ -80,8 +130,8 @@ namespace Gigahrush {
 		int ID;
 		std::string name;
 		std::vector<std::string> description;
-		std::vector<Item> items;
-		std::vector<Enemy> enemies;
+		std::vector<std::unique_ptr<Item>> items;
+		std::vector<std::unique_ptr<Enemy>> enemies;
 		bool isExit;
 	};
 
