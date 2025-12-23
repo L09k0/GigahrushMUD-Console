@@ -1,4 +1,4 @@
-#include "Client.h"
+ï»¿#include "Client.h"
 
 Client::Client(asio::io_context& io_context_, char* ip, char* port) :
 	io_context(io_context_),
@@ -14,10 +14,10 @@ void Client::Connect() {
 std::string Client::Send(std::string& data) {
 	recv_buffer.resize(2048);
 	std::size_t bytes_transmited = asio::write(socket, asio::buffer(data));
-	std::cout << "Žâ¯à ¢«¥­® ¡ ©â: " << bytes_transmited << std::endl;
+	std::cout << "ÐžÑ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾ Ð±Ð°Ð¹Ñ‚: " << bytes_transmited << std::endl;
 	std::size_t bytes_received = socket.read_some(asio::buffer(recv_buffer));
 	recv_buffer.resize(bytes_received);
-	std::cout << "®«ãç¥­® ¡ ©â: " << bytes_received << std::endl;
-	std::cout << "®«ãç¥­­®¥ á®®¡é¥­¨¥: " << recv_buffer << std::endl;
+	std::cout << "ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð±Ð°Ð¹Ñ‚: " << bytes_received << std::endl;
+	std::cout << "ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð½Ð¾Ðµ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ðµ: " << recv_buffer << std::endl;
 	return std::string(recv_buffer, bytes_received);
 }

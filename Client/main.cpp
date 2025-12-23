@@ -1,4 +1,4 @@
-#include <locale>
+﻿#include <locale>
 
 #include "asio.hpp"
 #include "Client.h"
@@ -6,12 +6,13 @@
 int main()
 {
 	#ifdef _WIN32
-		SetConsoleOutputCP(866);
-		SetConsoleCP(866);
+		SetConsoleCP(CP_UTF8); 
+		SetConsoleOutputCP(CP_UTF8);
+		system("chcp 65001 >nul");
 	#else
 		setlocale(LC_ALL, "ru_RU.UTF-8");
 	#endif
-
+	setlocale(LC_ALL, "ru_RU.UTF-8");
 	//Config
 
 	char ip[] = "localhost";
@@ -29,7 +30,7 @@ int main()
 		if (msg == "") continue;
 		//std::cout << msg;
 
-		std::cout << "��ࢥ� �⢥⨫: ";
+		std::cout << "Сервер ответил: ";
 		std::string str = client.Send(msg);
 		std::cout << str << std::endl;
 	}

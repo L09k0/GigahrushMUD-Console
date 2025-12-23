@@ -1,4 +1,4 @@
-#include "Session.h"
+ï»¿#include "Session.h"
 
 Session::Session(asio::ip::tcp::socket&& socket) : socket(std::move(socket)) {
 	std::cout << "User connected!" << std::endl;
@@ -21,7 +21,7 @@ void Session::read() {
 				std::cout << "Bytes received: " << bytes_received << std::endl;
 				std::cout << "Data: ";
 				std::cout << self->buffer << std::endl;
-				if (self->buffer == "•“‰") {
+				if (self->buffer == "Ð¥Ð£Ð™") {
 					std::cout << "ANAL: ";
 				}
 				std::size_t bt = asio::write(self->socket, asio::buffer(self->buffer.data(), bytes_received));
