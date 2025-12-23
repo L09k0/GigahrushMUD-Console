@@ -1,18 +1,51 @@
 ﻿#include <locale>
+#include <codecvt>
 
 #include "asio.hpp"
 #include "Client.h"
 
+std::string ConvertCP1251ToUTF8(const std::string& str)
+{
+	int len = MultiByteToWideChar(1251, 0, str.c_str(), -1, NULL, 0);
+	wchar_t* wstr = new wchar_t[len];
+	MultiByteToWideChar(1251, 0, str.c_str(), -1, wstr, len);
+
+	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, 0, 0);
+	char* utf8 = new char[len];
+	WideCharToMultiByte(CP_UTF8, 0, wstr, -1, utf8, len, 0, 0);
+
+	std::string result(utf8);
+	delete[] wstr;
+	delete[] utf8;
+
+	return result;
+}
+
+std::string ConvertUTF8ToCP1251(const std::string& str)
+{
+	int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+	wchar_t* wstr = new wchar_t[len];
+	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wstr, len);
+
+	len = WideCharToMultiByte(1251, 0, wstr, -1, NULL, 0, NULL, NULL);
+	char* cp1251 = new char[len];
+	WideCharToMultiByte(1251, 0, wstr, -1, cp1251, len, NULL, NULL);
+
+	std::string result(cp1251);
+	delete[] wstr;
+	delete[] cp1251;
+
+	return result;
+}
+
 int main()
 {
 	#ifdef _WIN32
-		SetConsoleCP(CP_UTF8); 
-		SetConsoleOutputCP(CP_UTF8);
-		system("chcp 65001 >nul");
+		SetConsoleCP(1251); 
+		SetConsoleOutputCP(1251);
 	#else
 		setlocale(LC_ALL, "ru_RU.UTF-8");
 	#endif
-	setlocale(LC_ALL, "ru_RU.UTF-8");
 	//Config
 
 	char ip[] = "localhost";
@@ -28,11 +61,10 @@ int main()
 		std::string msg;
 		std::getline(std::cin, msg);
 		if (msg == "") continue;
-		//std::cout << msg;
-
-		std::cout << "Сервер ответил: ";
-		std::string str = client.Send(msg);
-		std::cout << str << std::endl;
+		std::string msg_utf8 = ConvertCP1251ToUTF8(msg);
+		std::string str = client.Send(msg_utf8);
+		std::string response_local = ConvertUTF8ToCP1251(str);
+		std::cout << "Ответ от сервера: " << response_local << std::endl;
 	}
 	return 0;
 }
