@@ -1,4 +1,4 @@
-#include <string>
+п»ї#include <string>
 #include <vector>
 #include <memory>
 
@@ -21,8 +21,8 @@ namespace Gigahrush {
 
 	struct RoomDesc {
 		int ID;
-		std::vector<std::string> itemDescs; // Шаблон для описания положений предметов в комнате
-		std::vector<std::string> enemiesDescs; // Шаблон для описания положений врагов в комнате
+		std::vector<std::string> itemDescs; // РЁР°Р±Р»РѕРЅ РґР»СЏ РѕРїРёСЃР°РЅРёСЏ РїРѕР»РѕР¶РµРЅРёР№ РїСЂРµРґРјРµС‚РѕРІ РІ РєРѕРјРЅР°С‚Рµ
+		std::vector<std::string> enemiesDescs; // РЁР°Р±Р»РѕРЅ РґР»СЏ РѕРїРёСЃР°РЅРёСЏ РїРѕР»РѕР¶РµРЅРёР№ РІСЂР°РіРѕРІ РІ РєРѕРјРЅР°С‚Рµ
 	};
 
 	struct Craft {
@@ -108,7 +108,7 @@ namespace Gigahrush {
 			std::string name;
 			std::string description;
 			//Location location;
-			std::vector<std::string> replics; //Рандомные реплики определенного врага
+			std::vector<std::string> replics; //Р Р°РЅРґРѕРјРЅС‹Рµ СЂРµРїР»РёРєРё РѕРїСЂРµРґРµР»РµРЅРЅРѕРіРѕ РІСЂР°РіР°
 			unsigned short int health;
 			unsigned short int attack;
 			std::vector<std::unique_ptr<Item>> loot;

@@ -15,7 +15,7 @@ namespace Gigahrush {
 
 		std::vector<std::unique_ptr<Item>> items;
 		std::vector<std::unique_ptr<Enemy>> enemies;
-		std::vector<Room> rooms;
+		std::vector<std::unique_ptr<Room>> rooms;
 	};
 
 	class Configurator {

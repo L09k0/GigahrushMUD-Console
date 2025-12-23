@@ -13,10 +13,10 @@ class Client {
 		char* ip;
 		char* port;
 
-		char recv_buffer[1024];
+		std::string recv_buffer;
 	public:
 		Client(asio::io_context& io_context_, char* ip, char* port);
 
 		void Connect();
-		std::string Send(std::string data);
+		std::string Send(std::string& data);
 };

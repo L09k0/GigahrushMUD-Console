@@ -1,4 +1,4 @@
-#include "GameStructures.h"
+п»ї#include "GameStructures.h"
 
 namespace Gigahrush {
 	Item::Item(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
@@ -22,23 +22,23 @@ namespace Gigahrush {
 		Item(_ID, _name, _description, _useDescription, _canSpawn) {}
 
 	std::string Item::use(Player& ply) {
-		return std::string("Вы использовали предмет!");
+		return std::string("Р’С‹ РёСЃРїРѕР»СЊР·РѕРІР°Р»Рё РїСЂРµРґРјРµС‚!");
 	}
 
 	std::string Component::use(Player& ply) {
-		return std::string("Вы не можете использовать компонент!");
+		return std::string("Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєРѕРјРїРѕРЅРµРЅС‚!");
 	}
 
 	std::string Weapon::use(Player& ply) {
-		return std::string("Вы экипировали оружие!");
+		return std::string("Р’С‹ СЌРєРёРїРёСЂРѕРІР°Р»Рё РѕСЂСѓР¶РёРµ!");
 	}
 
 	std::string Food::use(Player& ply) {
-		return std::string("Вы сьели еду!");
+		return std::string("Р’С‹ СЃСЊРµР»Рё РµРґСѓ!");
 	}
 
 	std::string HealingItem::use(Player& ply) {
-		return std::string("Вы вылечились!");
+		return std::string("Р’С‹ РІС‹Р»РµС‡РёР»РёСЃСЊ!");
 	}
 
 	Enemy::Enemy(int _ID, std::string _name, std::string _description, std::vector<std::string> _replics, unsigned short int _health, unsigned short int _attack, std::vector<std::unique_ptr<Item>>&& _loot) :

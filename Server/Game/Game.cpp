@@ -10,9 +10,6 @@ namespace Gigahrush {
 		config.mapSize.Y = SizeConfig["FloorSizeY"];
 
 		std::cout << "=== MapSize config loaded ===" << std::endl;
-		std::cout << "FloorCount: " << config.mapSize.FloorCount << std::endl;
-		std::cout << "FloorSizeX: " << config.mapSize.X << std::endl;
-		std::cout << "FloorSizeY: " << config.mapSize.Y << std::endl << std::endl;
 	}
 
 	void Configurator::LoadItems() {
@@ -103,7 +100,7 @@ namespace Gigahrush {
 		nlohmann::json RoomsConfig = js.readFile("Config/Rooms.json");
 
 		for (int i = 0; i < RoomsConfig.size(); i++) {
-			config.rooms.push_back(Room(
+			config.rooms.push_back(std::make_unique<Room>(
 				RoomsConfig[i]["id"],
 				RoomsConfig[i]["name"],
 				std::vector<std::string>{RoomsConfig[i]["description"]},
@@ -140,23 +137,48 @@ namespace Gigahrush {
 	}
 
 	void Configurator::ShowAllConfig() {
+		std::cout << "All game config: \n";
 		//MapSize
 
-
+		std::cout << "Map Size: \n";
+		std::cout << "FloorCount: " << config.mapSize.FloorCount << std::endl;
+		std::cout << "FloorSizeX: " << config.mapSize.X << std::endl;
+		std::cout << "FloorSizeY: " << config.mapSize.Y << std::endl << std::endl;
 
 		//Items
 		
-
+		std::cout << "All items: \n";
+		
+		for (auto& it : config.items) {
+			std::cout << "ID: " << it->ID << "\nName: " << it->name << "\nDescription: " << it->description << std::endl;
+		}
 
 		//Enemies
 		
+		std::cout << "All enemies: \n";
 
+		for (auto& it : config.enemies) {
+			std::cout << "ID: " << it->ID << "\nName: " << it->name << "\nDescription: " << it->description << "\nHealth: " << it->health << "\nAttack: " << it->attack << std::endl;
+		}
 
 		//Rooms
 		
+		std::cout << "All rooms: \n";
 
+		for (auto& it : config.rooms) {
+			std::cout << "ID: " << it->ID << "\nName: " << it->name << "\nDescription: " << it->description[0] << std::endl;
+		}
 
 		//Crafts
+
+		std::cout << "All crafts: \n";
+
+		for (auto it : config.crafts) {
+			std::cout << "ID: " << it.ID << "\nCraft: ";
+			for (int i = 0; i < it.craft.size(); i++) {
+				std::cout << it.craft[i] << " ";
+			}
+		}
 	}
 
 	void Configurator::LoadConfig() {

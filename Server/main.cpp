@@ -1,10 +1,12 @@
-#include <iostream>
+﻿#include <iostream>
+#include <locale>
 
 #include "Server.h"
 #include "Game/Game.h"
 
 int main()
 {
+	setlocale(LC_ALL, "ru_RU.utf8");
 	Gigahrush::Game Game;
 	Game.configurator.LoadConfig();
 

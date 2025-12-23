@@ -18,3 +18,7 @@ set(HEADERS
 add_executable (GigahrushServer ${SOURCES} ${HEADERS})
 target_link_libraries(GigahrushServer PRIVATE asio)
 target_link_libraries(GigahrushServer PRIVATE nlohmann_json)
+
+target_compile_options(GigahrushServer PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+)
