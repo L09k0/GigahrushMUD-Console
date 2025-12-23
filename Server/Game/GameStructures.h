@@ -71,7 +71,7 @@ namespace Gigahrush {
 			std::string use(Player&) override;
 
 			Weapon(const Weapon& other) = default;
-			std::unique_ptr<Item> clone() const override{
+			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<Weapon>(*this);
 			}
 
@@ -133,6 +133,14 @@ namespace Gigahrush {
 		std::vector<std::unique_ptr<Item>> items;
 		std::vector<std::unique_ptr<Enemy>> enemies;
 		bool isExit;
+
+		Room(int _ID, std::string _name, std::vector<std::string> _description, std::vector<std::unique_ptr<Item>>&& _items, std::vector<std::unique_ptr<Enemy>>&& _enemies, bool _isExit) :
+			ID(_ID),
+			name(_name),
+			description(_description),
+			items(std::move(_items)),
+			enemies(std::move(_enemies)),
+			isExit(_isExit) {}
 	};
 
 	struct Floor {
