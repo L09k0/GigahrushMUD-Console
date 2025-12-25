@@ -9,6 +9,7 @@
 
 std::mutex gameMutex;
 std::atomic<bool> serverRunning = false;
+std::atomic<bool> isExit = false;
 std::atomic<bool> serverActive = false;
 
 std::string toLowerCase(std::string str) {
@@ -20,25 +21,26 @@ std::string toLowerCase(std::string str) {
 }
 
 void StartServer() {
+	while (!isExit) {
+		while (!serverRunning) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
 
-	while (!serverRunning) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}
-
-	asio::io_context io_context;
-	Server srv(io_context, 15001);
-	srv.async_accept();
-	while (serverRunning == true) {
-		serverActive = true;
-		io_context.poll();
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-	if (serverActive == true) {
-		io_context.stop();
-		std::cout << "Server stopped\n";
-	}
-	else {
-		std::cout << "Server not started xd\n";
+		asio::io_context io_context;
+		Server srv(io_context, 15001);
+		srv.async_accept();
+		while (serverRunning == true) {
+			serverActive = true;
+			io_context.poll();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+		if (serverActive == true) {
+			io_context.stop();
+			std::cout << "Server stopped\n";
+		}
+		else {
+			std::cout << "Server not started xd\n";
+		}
 	}
 }
 
@@ -80,18 +82,10 @@ void Terminal() {
 		else if (lowCom == "stop") {
 			std::cout << "Stopping server...\n";
 			serverRunning = false;
-
-			if (serverThread.joinable() && serverActive) {
-				serverThread.join();
-			}
 		}
 		else if (lowCom == "reset") {
 			std::cout << "Stopping server...\n";
 			serverRunning = false;
-
-			if (serverThread.joinable() && serverActive) {
-				serverThread.join();
-			}
 
 			std::cout << "Reseting game...\n";
 
@@ -107,6 +101,7 @@ void Terminal() {
 		else if (lowCom == "exit") {
 			std::cout << "Stopping server...\n";
 			serverRunning = false;
+			isExit = true;
 
 			if (serverThread.joinable()) {
 				serverThread.join();

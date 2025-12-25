@@ -55,12 +55,11 @@ int main()
 	char port[] = "15001";
 
 	audiere::AudioDevicePtr device = audiere::OpenDevice();
-	audiere::SoundEffect* sound = audiere::OpenSoundEffect(device, "bulba.mp3", audiere::SINGLE);
+	audiere::SoundEffect* sound = audiere::OpenSoundEffect(device, "effect.mp3", audiere::SINGLE);
 
 	while (running) {
-		sound->play();
 		asio::io_context io_context;
-
+		sound->play();
 		try {
 			Client client(io_context, ip, port);
 			client.Connect();
@@ -70,7 +69,6 @@ int main()
 					std::cout << "> ";
 					std::string msg;
 					std::getline(std::cin, msg);
-
 					if (msg == "") continue;
 					if (msg == "exit") { running = false; break; };
 
@@ -84,7 +82,7 @@ int main()
 					std::string ans;
 					std::getline(std::cin, ans);
 					if (ans == "Y" || ans == "y") {
-						break;
+						client.Connect();
 					}
 					else {
 						running = false;
@@ -97,7 +95,7 @@ int main()
 			std::string ans;
 			std::getline(std::cin, ans);
 			if (ans == "Y" || ans == "y") {
-				break;
+				continue;
 			}
 			else {
 				running = false;
