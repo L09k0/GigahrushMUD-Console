@@ -161,13 +161,16 @@ namespace Gigahrush {
 	struct Floor {
 		unsigned short int level;
 		std::vector<Room*> rooms;
+		std::vector<std::vector<int>> floorMask;
 		Location exitCoordinates;
+		bool canGoUp = false;
+		bool canGoDown = false;
 	};
 
 	//GameData
 
 	struct GameData {
 		std::vector<Floor> floors;
-		std::vector<Player> players;
+		std::vector<std::shared_ptr<Player>> players;
 	};
 }

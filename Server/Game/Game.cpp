@@ -8,8 +8,10 @@ namespace Gigahrush {
 		config.mapSize.FloorCount = SizeConfig["FloorCount"];
 		config.mapSize.X = SizeConfig["FloorSizeX"];
 		config.mapSize.Y = SizeConfig["FloorSizeY"];
+		config.maxInventorySize = SizeConfig["MaxInventory"];
+		config.maxRoomItems = SizeConfig["MaxRoomItems"];
 
-		std::cout << "=== MapSize config loaded ===" << std::endl;
+		std::cout << "=== Main config loaded ===" << std::endl;
 	}
 
 	void Configurator::LoadItems() {
@@ -149,6 +151,8 @@ namespace Gigahrush {
 		std::cout << "FloorCount: " << config.mapSize.FloorCount << std::endl;
 		std::cout << "FloorSizeX: " << config.mapSize.X << std::endl;
 		std::cout << "FloorSizeY: " << config.mapSize.Y << std::endl << std::endl;
+		std::cout << "Max inventory size: " << config.maxInventorySize << std::endl;
+		std::cout << "Max room items: " << config.maxRoomItems << std::endl << std::endl;
 
 		//Items
 		
@@ -275,6 +279,7 @@ namespace Gigahrush {
 			}
 			++count;
 		}
+		std::cout << "\n";
 	}
 
 	void Configurator::LoadConfig() {
@@ -286,6 +291,7 @@ namespace Gigahrush {
 		LoadRooms();
 		LoadCrafts();
 
+		config.configLoaded = true;
 		std::cout << "Config loaded!\n\n";
 
 		ShowAllConfig();
@@ -304,11 +310,218 @@ namespace Gigahrush {
 
 	}
 
-	void Game::GenerateFloors() {
+	bool Game::changeDir(std::vector<std::vector<int>>& mask, int& X, int& Y, int& randDir) {
+		randDir = (rand() % 4) + 1;
+
+		if (X >= 0 && X < mask.size() && Y >= 0 && Y < mask[0].size()) {
+			if (mask[X][Y] == 0) { return true; }
+		}
+
+		int tempX = X;
+		int tempY = Y;
+
+		switch (randDir) {
+			case 1:
+				tempY += 1;
+				break;
+			case 2:
+				tempY -= 1;
+				break;
+			case 3:
+				tempX -= 1;
+				break;
+			case 4:
+				tempX += 1;
+				break;
+		}
+
+		if (tempX >= 0 && tempX <= mask.size() && tempY >= 0 && tempY <= mask[0].size()) {
+			X = tempX;
+			Y = tempY;
+
+			return true;
+		}
+		else {
+			return false;
+		}
 
 	}
 
-	void Game::GenerateGame() {
+	void Game::GenerateBranchMask(std::vector<std::vector<int>>& mask, int currentX, int currentY, int remainingSteps, int currentDir) {
+		if (remainingSteps <= 0 || currentX < 0 || currentX >= mask.size() || currentY < 0 || currentY >= mask[0].size()) {
+			return;
+		}
 
+		if (mask[currentX][currentY] == 1) { return; }
+		mask[currentX][currentY] = 1;
+
+		if (rand() % 100 < 50) {
+			GenerateBranchMask(mask, currentX, currentY, remainingSteps, (rand() % 4) + 1);
+		}
+
+		if (rand() % 100 < 65) {
+			int newX = currentX;
+			int newY = currentY;
+
+			switch (currentDir) {
+				case 1:
+					newY += 1;
+					break;
+				case 2:
+					newY -= 1;
+					break;
+				case 3:
+					newX -= 1;
+					break;
+				case 4:
+					newX += 1;
+					break;
+			}
+
+			if (newX >= 0 && newX < mask.size() && newY >= 0 && newY < mask[0].size()) {
+				GenerateFloorMask(mask, newX, newY, remainingSteps - 1, currentDir);
+			}
+		}
+		else {
+			for (int i = 1; i <= 4; i++) {
+				if (remainingSteps <= 0) { break; }
+
+				int randDir = (rand() % 4) + 1;
+
+				if (rand() % 100 < 55) {
+					int newX = currentX;
+					int newY = currentY;
+
+					switch (randDir) {
+						case 1:
+							newY += 1;
+							break;
+						case 2:
+							newY -= 1;
+							break;
+						case 3:
+							newX -= 1;
+							break;
+						case 4:
+							newX += 1;
+							break;
+					}
+
+					for (int z = 0; z < 5; z++) {
+						changeDir(mask, newX, newY, randDir);
+					}
+
+					if (newX >= 0 && newX < mask.size() && newY >= 0 && newY < mask[0].size()) {
+						GenerateFloorMask(mask, newX, newY, remainingSteps - 1, randDir);
+					}
+				}
+			}
+		}
+	}
+
+	void Game::GenerateFloorMask(std::vector<std::vector<int>>& mask, int currentX, int currentY, int remainingSteps, int currentDir) {
+		if (remainingSteps <= 0 || currentX < 0 || currentX >= mask.size() || currentY < 0 || currentY >= mask[0].size()) {
+			return;
+		}
+
+		if (mask[currentX][currentY] == 1) { return; }
+		mask[currentX][currentY] = 1;
+
+		if (rand() % 100 < 50) {
+			GenerateBranchMask(mask, currentX, currentY, remainingSteps, (rand() % 4) + 1);
+		}
+
+		if (rand() % 100 < 65) {
+			int newX = currentX;
+			int newY = currentY;
+
+			switch (currentDir) {
+				case 1:
+					newY += 1;
+					break;
+				case 2:
+					newY -= 1;
+					break;
+				case 3:
+					newX -= 1;
+					break;
+				case 4:
+					newX += 1;
+					break;
+			}
+
+			if (newX >= 0 && newX <= mask.size() && newY >= 0 && newY <= mask[0].size()) {
+				GenerateFloorMask(mask, newX, newY, remainingSteps - 1, currentDir);
+			}
+		}
+		else {
+			for (int i = 1; i <= 4; i++) {
+				if (remainingSteps <= 0) { break; }
+
+				int randDir = (rand() % 4) + 1;
+
+				if (rand() % 100 < 45) {
+					int newX = currentX;
+					int newY = currentY;
+
+					switch (randDir) {
+						case 1:
+							newY += 1;
+							break;
+						case 2:
+							newY -= 1;
+							break;
+						case 3:
+							newX -= 1;
+							break;
+						case 4:
+							newX += 1;
+							break;
+					}
+
+					for (int z = 0; z < 5; z++) {
+						changeDir(mask, newX, newY, randDir);
+					}
+
+					if (newX >= 0 && newX <= mask.size() && newY >= 0 && newY <= mask[0].size()) {
+						GenerateFloorMask(mask, newX, newY, remainingSteps - 1, randDir);
+					}
+				}
+			}
+		}
+	}
+
+	void Game::GenerateFloors() {
+		std::cout << "Started generate floors.\n";
+
+		//for (int i = 0; i < configurator.config.mapSize.FloorCount; i++) {
+			std::vector<std::vector<int>> mask(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y,0));
+
+			int randStartX = configurator.config.mapSize.X/2;
+			int randStartY = configurator.config.mapSize.Y/2;
+			int remainingSteps = configurator.config.mapSize.X;
+
+			GenerateFloorMask(mask, randStartX, randStartY, remainingSteps, (rand()%4)+1);
+
+			//Print mask
+
+			for (int y = 0; y < mask.size(); y++) {
+				for (int x = 0; x < mask[0].size(); x++) {
+					if (mask[x][y] == 1) { std::cout << "#"; }
+					else { std::cout << " "; }
+				}
+				std::cout << "\n";
+			}
+		//}
+	}
+
+	void Game::GenerateGame() {
+		if (configurator.config.configLoaded == true) {
+			GenerateFloors();
+			std::cout << "Game generated, server now can be started!\n";
+		}
+		else {
+			std::cout << "Can't generate game, config is not loaded";
+		}
 	}
 }

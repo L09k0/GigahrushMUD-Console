@@ -1,5 +1,6 @@
 #include "GameStructures.h"
 #include "JsonParser.h"
+#include <cstdlib>
 
 namespace Gigahrush {
 	struct Config {
@@ -16,6 +17,11 @@ namespace Gigahrush {
 		std::vector<std::unique_ptr<Item>> items;
 		std::vector<std::unique_ptr<Enemy>> enemies;
 		std::vector<std::unique_ptr<Room>> rooms;
+
+		std::size_t maxInventorySize;
+		std::size_t maxRoomItems;
+
+		bool configLoaded = false;
 	};
 
 	class Configurator {
@@ -43,6 +49,10 @@ namespace Gigahrush {
 			void GenerateFloors();
 			void GenerateRoom();
 			void GenerateItemsAndEnemies();
+
+			bool changeDir(std::vector<std::vector<int>>&, int&, int&, int&);
+			void GenerateBranchMask(std::vector<std::vector<int>>&, int, int, int, int);
+			void GenerateFloorMask(std::vector<std::vector<int>>&, int, int, int, int);
 
 		public:
 			Configurator configurator;

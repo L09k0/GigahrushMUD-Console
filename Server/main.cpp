@@ -6,9 +6,12 @@
 
 int main()
 {
+	srand(time(0));
+
 	setlocale(LC_ALL, "ru_RU.utf8");
 	Gigahrush::Game& Game = Gigahrush::Game::Instance();
 	Game.configurator.LoadConfig();
+	Game.GenerateGame();
 
 	asio::io_context io_context;
 	Server srv(io_context, 15001);
