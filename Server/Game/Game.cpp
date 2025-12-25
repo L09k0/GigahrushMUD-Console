@@ -483,18 +483,140 @@ namespace Gigahrush {
 		}
 	}
 
-	void Game::GenerateItemsAndEnemies() {
+	void Game::PrintRoomInfo(std::unique_ptr<Room>& rm) {
+		std::cout << "\n# Room " << rm->ID << "\n\n";
+		std::cout << "ID: " << rm->ID << "\nName: " << rm->name
+			<< "\nDescription: " << rm->description << "\n"
+			<< "Is exit: " << rm->isExit
+			<< "\nLocation: " << rm->location.X << " " << rm->location.Y << " " << rm->location.F << "\n";
+		std::cout << "\n";
 
+		std::cout << "Items:\n\n";
+
+		for (auto& it : rm->items) {
+			std::cout << "Name: " << it->name << "\n";
+		}
+
+		std::cout << "Enemies:\n\n";
+
+		for (auto& it : rm->enemies) {
+			std::cout << "Name: " << it->name << "\n";
+		}
 	}
 
-	std::unique_ptr<Room> Game::GenerateRoom(Location loc) {
+	void Game::GenerateItemsAndEnemies(std::unique_ptr<Room>& rm) {
+		//Gen items
+		std::vector<RoomDescElement> itemDescription;
+		std::vector<std::unique_ptr<Item>> items;
+
+		int itemCount = (rand() % configurator.config.maxRoomItems) + 1;
+
+		for (int i = 0; i < itemCount; i++) {
+			int itemId = 0;
+
+			//Random algoritm
+			int Weight = 0;
+
+			for (auto ch : configurator.config.itemSpawnChances) {
+				Weight += (ch.chance * 100);
+			}
+
+			int choose = rand() % Weight;
+
+			Weight = 0;
+
+			for (auto ch : configurator.config.itemSpawnChances) {
+				Weight += (ch.chance * 100);
+				if (Weight >= choose) {
+					itemId = ch.ID;
+					break;
+				}
+			}
+			//End random
+			for (auto &it : configurator.config.items) {
+				if (it->ID == itemId) {
+					items.push_back(it->clone());
+					break;
+				}
+			}
+
+			std::string phrase = "";
+
+			for (auto it : configurator.config.roomDescs) {
+				if (rm->ID == it.ID) {
+					phrase = it.itemDescs[rand() % it.itemDescs.size()];
+				}
+			}
+
+			itemDescription.push_back(RoomDescElement(itemId, phrase));
+		}
+
+		//Gen enemy
+		std::vector<RoomDescElement> enemyDescription;
+		std::vector<std::unique_ptr<Enemy>> enemies;
+
+		if (rand() % 100 <= 50) {
+			int enemyCount = (rand() % (configurator.config.maxRoomItems / 2)) + 1;
+			for (int i = 0; i < enemyCount; i++) {
+				int enemyID = 0;
+
+				//Random algoritm
+				int Weight = 0;
+
+				for (auto ch : configurator.config.enemySpawnChances) {
+					Weight += (ch.chance * 100);
+				}
+
+				int choose = rand() % Weight;
+
+				Weight = 0;
+
+				for (auto ch : configurator.config.enemySpawnChances) {
+					Weight += (ch.chance * 100);
+					if (Weight >= choose) {
+						enemyID = ch.ID;
+						break;
+					}
+				}
+				//End random
+
+				for (auto& it : configurator.config.enemies) {
+					if (it->ID == enemyID) {
+						enemies.push_back(it->clone());
+						break;
+					}
+				}
+
+				//enemies.push_back(configurator.config.enemies[enemyID]->clone());
+
+				std::cout << "МАНАДВОКА2";
+				std::string phrase = "";
+
+				for (auto it : configurator.config.roomDescs) {
+					if (rm->ID == it.ID) {
+						phrase = it.enemiesDescs[rand() % it.enemiesDescs.size()];
+					}
+				}
+
+				enemyDescription.push_back(RoomDescElement(enemyID, phrase));
+			}
+		}
+
+		rm->itemDescription = itemDescription;
+		rm->enemyDescription = enemyDescription;
+
+		rm->items = std::move(items);
+		rm->enemies = std::move(enemies);
+	}
+
+	std::unique_ptr<Room> Game::GenerateRoom(Location loc, bool isExit) {
 		int RoomID = 0;
 
 		//Random algoritm
 		int Weight = 0;
 
 		for (auto ch : configurator.config.roomSpawnChances) {
-			Weight += ch.chance * 100;
+			Weight += (ch.chance * 100);
 		}
 
 		int choose = rand() % Weight;
@@ -502,9 +624,10 @@ namespace Gigahrush {
 		Weight = 0;
 
 		for (auto ch : configurator.config.roomSpawnChances) {
-			Weight += ch.chance * 100;
+			Weight += (ch.chance * 100);
 			if (Weight >= choose) {
 				RoomID = ch.ID;
+				break;
 			}
 		}
 		//End random
@@ -516,7 +639,11 @@ namespace Gigahrush {
 			}
 		}
 
+		room->isExit = isExit;
 		room->location = loc;
+
+		GenerateItemsAndEnemies(room);
+		PrintRoomInfo(room);
 
 		return room;
 	}
@@ -563,8 +690,13 @@ namespace Gigahrush {
 			for (int y = 0; y < mask.size(); y++) {
 				for (int x = 0; x < mask[0].size(); x++) {
 					if (mask[x][y] == 1) {
+						bool isex;
 						Location loc(x, y, i);
-						flr->rooms.push_back(GenerateRoom(loc));
+
+						if (loc == flr->exitCoordinates) { isex = true; }
+						else { isex = false; }
+
+						flr->rooms.push_back(GenerateRoom(loc,isex));
 						std::cout << "#";
 					}
 					else {

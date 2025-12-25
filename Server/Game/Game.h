@@ -1,6 +1,7 @@
 #include "GameStructures.h"
 #include "JsonParser.h"
 #include <cstdlib>
+#include <format>
 
 namespace Gigahrush {
 	struct Config {
@@ -47,9 +48,10 @@ namespace Gigahrush {
 			Game& operator= (Game const&) = delete;
 
 			void GenerateFloors();
-			std::unique_ptr<Room> GenerateRoom(Location);
-			void GenerateItemsAndEnemies();
+			std::unique_ptr<Room> GenerateRoom(Location, bool);
+			void GenerateItemsAndEnemies(std::unique_ptr<Room>&);
 
+			void PrintRoomInfo(std::unique_ptr<Room>&);
 			bool changeDir(std::vector<std::vector<int>>&, int&, int&, int&);
 			void GenerateBranchMask(std::vector<std::vector<int>>&, int, int, int, int);
 			void GenerateFloorMask(std::vector<std::vector<int>>&, int, int, int, int);

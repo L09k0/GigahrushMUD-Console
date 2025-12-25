@@ -38,6 +38,10 @@ namespace Gigahrush {
 		int X;
 		int Y;
 		int F;
+
+		bool operator== (const Location& xd) const {
+			return (X == xd.X && Y == xd.Y && F == xd.F);
+		}
 	};
 
 	class Item {
@@ -56,6 +60,7 @@ namespace Gigahrush {
 				useDescription(other.useDescription),
 				canSpawn(other.canSpawn) {}
 
+
 			virtual ~Item();
 			virtual std::unique_ptr<Item> clone() const = 0;
 			virtual std::string use(Player&);
@@ -65,7 +70,7 @@ namespace Gigahrush {
 		public:
 			std::string use(Player&) override;
 
-			Component(const Component& other) = default;
+			Component(const Component& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<Component>(*this);
 			}
@@ -77,7 +82,7 @@ namespace Gigahrush {
 		public:
 			std::string use(Player&) override;
 
-			Weapon(const Weapon& other) = default;
+			Weapon(const Weapon& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<Weapon>(*this);
 			}
@@ -89,7 +94,7 @@ namespace Gigahrush {
 		public:
 			std::string use(Player&) override;
 
-			Food(const Food& other) = default;
+			Food(const Food& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<Food>(*this);
 			}
@@ -101,7 +106,7 @@ namespace Gigahrush {
 		public:
 			std::string use(Player&) override;
 
-			HealingItem(const HealingItem& other) = default;
+			HealingItem(const HealingItem& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<HealingItem>(*this);
 			}
@@ -131,25 +136,34 @@ namespace Gigahrush {
 				health(other.health),
 				attack(other.attack) {
 				for (auto &it : other.loot) {
-					loot.push_back(it->clone());
+					if (it) {
+						loot.push_back(it->clone());
+					}
 				}
 			}
 
 			Enemy& operator= (const Enemy& other) {
-				ID = other.ID;
-				name = other.name;
-				description = other.description;
-				replics = other.replics;
-				health = other.health;
-				attack = other.attack;
+				if (this != &other) {
+					ID = other.ID;
+					name = other.name;
+					description = other.description;
+					replics = other.replics;
+					health = other.health;
+					attack = other.attack;
 
-				loot.clear();
+					loot.clear();
 
-				for (auto& it : other.loot) {
-					loot.push_back(it->clone());
+					for (auto& it : other.loot) {
+						if (it) {
+							loot.push_back(it->clone());
+						}
+					}
 				}
-
 				return *this;
+			}
+
+			std::unique_ptr<Enemy> clone() {
+				return std::make_unique<Enemy>(*this);
 			}
 
 			//std::string attack(Player&);
@@ -209,7 +223,7 @@ namespace Gigahrush {
 
 			for (auto& it : other.enemies) {
 				if (it) {
-					enemies.push_back(std::make_unique<Enemy>(*it));
+					enemies.push_back(it->clone());
 				}
 			}
 		}
@@ -236,7 +250,7 @@ namespace Gigahrush {
 
 				for (auto& it : other.enemies) {
 					if (it) {
-						enemies.push_back(std::make_unique<Enemy>(*it));
+						enemies.push_back(it->clone());
 					}
 				}
 			}
