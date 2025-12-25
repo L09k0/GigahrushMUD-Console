@@ -732,6 +732,7 @@ namespace Gigahrush {
 
 	void Game::ResetGame() {
 		gamedata = GameData();
+		isGenerated = false;
 	}
 
 	void Game::Info() {

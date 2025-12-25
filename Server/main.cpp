@@ -86,7 +86,18 @@ void Terminal() {
 			}
 		}
 		else if (lowCom == "reset") {
+			std::cout << "Stopping server...\n";
+			serverRunning = false;
+
+			if (serverThread.joinable() && serverActive) {
+				serverThread.join();
+			}
+
 			std::cout << "Reseting game...\n";
+
+			gameMutex.lock();
+			Game.ResetGame();
+			gameMutex.unlock();
 		}
 		else if (lowCom == "info") {
 			gameMutex.lock();
