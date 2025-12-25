@@ -655,8 +655,8 @@ namespace Gigahrush {
 				std::vector<std::unique_ptr<Room>>{},
 				std::vector<std::vector<int>>{},
 				Location{ 0, 0, 0 },
-				false,
-				false
+				true,
+				true
 			);
 
 			if (i == 1) {
