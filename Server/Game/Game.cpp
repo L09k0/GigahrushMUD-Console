@@ -498,10 +498,22 @@ namespace Gigahrush {
 			std::cout << "Name: " << it->name << "\n";
 		}
 
+		std::cout << "--- items room descs ---\n\n";
+
+		for (auto& t : rm->itemDescription) {
+			std::cout << "Room description: " << t.desc << "\n";
+		}
+
 		std::cout << "Enemies:\n\n";
 
 		for (auto& it : rm->enemies) {
 			std::cout << "Name: " << it->name << "\n";
+		}
+
+		std::cout << "--- enemy room descs ---\n\n";
+
+		for (auto& t : rm->enemyDescription) {
+			std::cout << "Room description: " << t.desc << "\n";
 		}
 	}
 
@@ -518,7 +530,7 @@ namespace Gigahrush {
 			//Random algoritm
 			int Weight = 0;
 
-			for (auto ch : configurator.config.itemSpawnChances) {
+			for (auto &ch : configurator.config.itemSpawnChances) {
 				Weight += (ch.chance * 100);
 			}
 
@@ -526,16 +538,19 @@ namespace Gigahrush {
 
 			Weight = 0;
 
-			for (auto ch : configurator.config.itemSpawnChances) {
+			for (auto &ch : configurator.config.itemSpawnChances) {
 				Weight += (ch.chance * 100);
 				if (Weight >= choose) {
 					itemId = ch.ID;
 					break;
 				}
 			}
+
+			std::string itName = "";
 			//End random
 			for (auto &it : configurator.config.items) {
 				if (it->ID == itemId) {
+					itName = it->name;
 					items.push_back(it->clone());
 					break;
 				}
@@ -543,9 +558,11 @@ namespace Gigahrush {
 
 			std::string phrase = "";
 
-			for (auto it : configurator.config.roomDescs) {
+			for (auto &it : configurator.config.roomDescs) {
 				if (rm->ID == it.ID) {
-					phrase = it.itemDescs[rand() % it.itemDescs.size()];
+					phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(itName));
+					//phrase = it.itemDescs[rand() % it.itemDescs.size()];
+					//sprintf(&phrase[0], itName.c_str());
 				}
 			}
 
@@ -564,7 +581,7 @@ namespace Gigahrush {
 				//Random algoritm
 				int Weight = 0;
 
-				for (auto ch : configurator.config.enemySpawnChances) {
+				for (auto &ch : configurator.config.enemySpawnChances) {
 					Weight += (ch.chance * 100);
 				}
 
@@ -572,7 +589,7 @@ namespace Gigahrush {
 
 				Weight = 0;
 
-				for (auto ch : configurator.config.enemySpawnChances) {
+				for (auto &ch : configurator.config.enemySpawnChances) {
 					Weight += (ch.chance * 100);
 					if (Weight >= choose) {
 						enemyID = ch.ID;
@@ -581,17 +598,23 @@ namespace Gigahrush {
 				}
 				//End random
 
+				std::string enName = "";
+
 				for (auto& it : configurator.config.enemies) {
 					if (it->ID == enemyID) {
+						enName = it->name;
 						enemies.push_back(it->clone());
 						break;
 					}
 				}
 				std::string phrase = "";
 
-				for (auto it : configurator.config.roomDescs) {
+				for (auto& it : configurator.config.roomDescs) {
 					if (rm->ID == it.ID) {
-						phrase = it.enemiesDescs[rand() % it.enemiesDescs.size()];
+						phrase = std::vformat(std::string_view(it.enemiesDescs[rand() % it.enemiesDescs.size()]), std::make_format_args(enName));
+						//phrase = it.enemiesDescs[rand() % it.enemiesDescs.size()];
+						//sprintf(&phrase[0], enName.c_str());
+						//phrase = std::format(it.enemiesDescs[rand() % it.enemiesDescs.size()], enName);
 					}
 				}
 
@@ -640,13 +663,12 @@ namespace Gigahrush {
 		room->location = loc;
 
 		GenerateItemsAndEnemies(room);
-		//PrintRoomInfo(room);
+		PrintRoomInfo(room);
 		return room;
 	}
 
 	void Game::GenerateFloors() {
 		//std::cout << "\nStarted generate floors.\n";
-
 		for (int i = 1; i <= configurator.config.mapSize.FloorCount; i++) {
 			//std::cout << "\nFloor - " << i << "\n\n";
 
@@ -668,7 +690,9 @@ namespace Gigahrush {
 			}
 
 			flr->level = i;
-			std::vector<std::vector<int>> mask(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y,0));
+			//std::vector<std::vector<int>> mask(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y,0));
+
+			flr->floorMask.resize(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y, 0));
 
 			int randStartX = configurator.config.mapSize.X/2;
 			int randStartY = configurator.config.mapSize.Y/2;
@@ -677,15 +701,15 @@ namespace Gigahrush {
 
 			int remainingSteps = configurator.config.mapSize.X;
 
-			GenerateFloorMask(mask, randStartX, randStartY, remainingSteps, (rand()%4)+1);
+			GenerateFloorMask(flr->floorMask, randStartX, randStartY, remainingSteps, (rand()%4)+1);
 
-			flr->floorMask = mask;
+			//flr->floorMask = mask;
 
 			//Print mask
 
-			for (int y = 0; y < mask.size(); y++) {
-				for (int x = 0; x < mask[0].size(); x++) {
-					if (mask[x][y] == 1) {
+			for (int y = 0; y < flr->floorMask.size(); y++) {
+				for (int x = 0; x < flr->floorMask[0].size(); x++) {
+					if (flr->floorMask[x][y] == 1) {
 						bool isex;
 						Location loc(x, y, i);
 

@@ -1,6 +1,7 @@
 #include "GameStructures.h"
 #include "JsonParser.h"
 #include <cstdlib>
+#include <stdio.h>
 #include <format>
 #include <chrono>
 

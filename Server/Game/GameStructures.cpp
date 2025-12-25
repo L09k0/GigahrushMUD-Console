@@ -1,7 +1,7 @@
 ﻿#include "GameStructures.h"
 
 namespace Gigahrush {
-	Item::Item(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
+	Item::Item(int _ID, const std::string& _name, const std::string& _description, const std::string& _useDescription, bool _canSpawn) :
 		ID(_ID),
 		name(_name),
 		description(_description),

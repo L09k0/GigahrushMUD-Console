@@ -52,7 +52,7 @@ namespace Gigahrush {
 			std::string useDescription;
 			bool canSpawn;
 
-			Item(int, std::string, std::string, std::string, bool);
+			Item(int, const std::string&, const std::string&, const std::string&, bool);
 
 			Item(const Item& other) : ID(other.ID),
 				name(other.name),
