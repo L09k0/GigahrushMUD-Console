@@ -2,6 +2,7 @@
 #include "JsonParser.h"
 #include <cstdlib>
 #include <format>
+#include <chrono>
 
 namespace Gigahrush {
 	struct Config {
@@ -30,7 +31,7 @@ namespace Gigahrush {
 			Config config;
 
 			void ShowAllConfig();
-			void LoadConfig();
+			bool LoadConfig();
 		private:
 			void LoadMapSize();
 			void LoadItems();
@@ -62,6 +63,7 @@ namespace Gigahrush {
 
 			static Game& Instance();
 			
-			void GenerateGame();
+			bool GenerateGame();
+			std::string ParseCommand();
 	};
 }

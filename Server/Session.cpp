@@ -1,6 +1,6 @@
 ﻿#include "Session.h"
 
-Session::Session(asio::ip::tcp::socket&& socket) : socket(std::move(socket)) {
+Session::Session(asio::ip::tcp::socket&& socket) : socket(std::move(socket)), game(Gigahrush::Game::Instance()) {
 	std::cout << "User connected!" << std::endl;
 	buffer.resize(256);
 }
@@ -18,13 +18,8 @@ void Session::read() {
 		[self = shared_from_this()](std::error_code ec, std::size_t bytes_received) {
 			if (!ec) {
 				self->buffer.resize(bytes_received);
-				std::cout << "Bytes received: " << bytes_received << std::endl;
-				std::cout << "Data: ";
-				std::cout << self->buffer << std::endl;
-				if (self->buffer == "ХУЙ") {
-					std::cout << "ANAL: ";
-				}
-				std::size_t bt = asio::write(self->socket, asio::buffer(self->buffer.data(), bytes_received));
+				std::string answer = self->game.ParseCommand();
+				std::size_t bt = asio::write(self->socket, asio::buffer(answer));
 				self->buffer.resize(256);
 				self->read();
 			}

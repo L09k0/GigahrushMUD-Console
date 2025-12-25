@@ -282,7 +282,7 @@ namespace Gigahrush {
 		std::cout << "\n";
 	}
 
-	void Configurator::LoadConfig() {
+	bool Configurator::LoadConfig() {
 		std::cout << "=== Starting loading config ===" << std::endl << std::endl;
 
 		LoadMapSize();
@@ -293,7 +293,7 @@ namespace Gigahrush {
 
 		config.configLoaded = true;
 		std::cout << "Config loaded!\n\n";
-
+		return true;
 		ShowAllConfig();
 	}
 
@@ -555,7 +555,7 @@ namespace Gigahrush {
 		std::vector<RoomDescElement> enemyDescription;
 		std::vector<std::unique_ptr<Enemy>> enemies;
 
-		if (rand() % 100 <= 50) {
+		if (rand() % 100 <= 25) {
 			int enemyCount = (rand() % (configurator.config.maxRoomItems / 2)) + 1;
 			for (int i = 0; i < enemyCount; i++) {
 				int enemyID = 0;
@@ -586,10 +586,6 @@ namespace Gigahrush {
 						break;
 					}
 				}
-
-				//enemies.push_back(configurator.config.enemies[enemyID]->clone());
-
-				std::cout << "МАНАДВОКА2";
 				std::string phrase = "";
 
 				for (auto it : configurator.config.roomDescs) {
@@ -643,16 +639,15 @@ namespace Gigahrush {
 		room->location = loc;
 
 		GenerateItemsAndEnemies(room);
-		PrintRoomInfo(room);
-
+		//PrintRoomInfo(room);
 		return room;
 	}
 
 	void Game::GenerateFloors() {
-		std::cout << "\nStarted generate floors.\n\n";
+		std::cout << "\nStarted generate floors.\n";
 
 		for (int i = 1; i <= configurator.config.mapSize.FloorCount; i++) {
-			std::cout << "Floor - " << i << "\n\n";
+			std::cout << "\nFloor - " << i << "\n\n";
 
 			std::unique_ptr<Floor> flr = std::make_unique<Floor>(
 				0,
@@ -709,13 +704,24 @@ namespace Gigahrush {
 		}
 	}
 
-	void Game::GenerateGame() {
+	bool Game::GenerateGame() {
+		std::cout << "=== GENERATING GAME ===\n\n";
 		if (configurator.config.configLoaded == true) {
+			auto start = std::chrono::high_resolution_clock::now();
 			GenerateFloors();
-			std::cout << "Game generated, server now can be started!\n";
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+			std::cout << "Game generated in " << duration << ", server now can be started!\n";
+			return true;
 		}
 		else {
-			std::cout << "Can't generate game, config is not loaded";
+			std::cout << "Can't generate game, config is not loaded\n";
+			return false;
 		}
+	}
+
+	std::string Game::ParseCommand() {
+		std::cout << "Парсилка команды\n";
+		return "Елда!";
 	}
 }

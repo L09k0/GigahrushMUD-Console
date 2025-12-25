@@ -4,6 +4,8 @@
 #include "asio.hpp"
 #include "Client.h"
 
+bool running = true;
+
 std::string ConvertCP1251ToUTF8(const std::string& str)
 {
 	int len = MultiByteToWideChar(1251, 0, str.c_str(), -1, NULL, 0);
@@ -51,20 +53,48 @@ int main()
 	char ip[] = "localhost";
 	char port[] = "15001";
 
-	asio::io_context io_context;
+	while (running) {
+		asio::io_context io_context;
 
-	Client client(io_context, ip, port);
-	client.Connect();
+		try {
+			Client client(io_context, ip, port);
+			client.Connect();
 
-	while (true) {
-		std::cout << "> ";
-		std::string msg;
-		std::getline(std::cin, msg);
-		if (msg == "") continue;
-		std::string msg_utf8 = ConvertCP1251ToUTF8(msg);
-		std::string str = client.Send(msg_utf8);
-		std::string response_local = ConvertUTF8ToCP1251(str);
-		std::cout << "Ответ от сервера: " << response_local << std::endl;
+			while (true) {
+				try {
+					std::cout << "> ";
+					std::string msg;
+					std::getline(std::cin, msg);
+
+					if (msg == "") continue;
+					if (msg == "exit") { break; running = false; };
+
+					std::string msg_utf8 = ConvertCP1251ToUTF8(msg);
+					std::string str = client.Send(msg_utf8);
+					std::string response_local = ConvertUTF8ToCP1251(str);
+					std::cout << "Ответ от сервера: " << response_local << std::endl;
+				}
+				catch (const std::exception& e) {
+					std::cout << "Ошибка соединения подключится.\nПопробовать снова? (Y/N) :";
+					std::string ans;
+					std::getline(std::cin, ans);
+					if (ans == "Y" || ans == "y") {
+						break;
+					}
+					else {
+						running = false;
+					}
+				}
+			}
+		}
+		catch (const std::exception& e) {
+			std::cout << "Невозможно подключится.\nПопробовать снова? (Y/N) :";
+			std::string ans;
+			std::getline(std::cin, ans);
+			if (ans == "Y" || ans == "y") {
+				continue;
+			}
+		}
 	}
 	return 0;
 }
