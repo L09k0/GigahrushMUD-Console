@@ -1,14 +1,14 @@
 ﻿#include "Session.h"
 
-Session::Session(asio::ip::tcp::socket&& socket, std::shared_ptr<Gigahrush::Player> ply) : 
+Session::Session(asio::ip::tcp::socket&& socket) : 
 	socket(std::move(socket)), 
 	game(Gigahrush::Game::Instance()),
-	sessionPlayer(ply) {
+	sessionPlayer(nullptr) {
 	buffer.resize(256);
 }
 
 Session::~Session() {
-	std::cout << "User " << sessionPlayer->username << "disconnected!" << std::endl;
+	std::cout << "User " << sessionPlayer->username << " disconnected!" << std::endl;
 }
 
 void Session::firstTime() {
@@ -18,6 +18,22 @@ void Session::firstTime() {
 				self->buffer.resize(bytes_received);
 				if (self->buffer.data() != "") {
 					std::size_t bt = asio::write(self->socket, asio::buffer("Вы успешно вошли!"));
+
+					bool plyFound = false;
+					for (auto& it : Gigahrush::Game::Instance().gamedata.players) {
+						if (it->username == self->buffer) {
+							self->sessionPlayer = it;
+							plyFound = true;
+							std::cout << "User already in gamedata. User has joined the game with nick: " << self->sessionPlayer->username << "\n";
+						}
+					}
+
+					if (!plyFound){
+						std::shared_ptr<Gigahrush::Player> ply = std::make_shared<Gigahrush::Player>();
+						Gigahrush::Game::Instance().gamedata.players.push_back(ply);
+						self->sessionPlayer = ply;
+					}
+
 					self->sessionPlayer->username = self->buffer;
 					std::cout << "User has joined the game with nick: " << self->sessionPlayer->username << "\n";
 					self->buffer.resize(256);
