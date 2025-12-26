@@ -33,6 +33,8 @@ namespace Gigahrush {
 	// Game Structures
 
 	struct Player;
+	struct Room;
+	struct Floor;
 
 	struct Location {
 		int X;
@@ -171,7 +173,8 @@ namespace Gigahrush {
 
 	struct Player {
 		std::string username;
-		Location location;
+		std::shared_ptr<Room> location;
+		std::shared_ptr<Floor> floor;
 		std::vector<std::unique_ptr<Item>> inventory;
 		Status status;
 	};
@@ -258,23 +261,23 @@ namespace Gigahrush {
 			return *this;
 		}
 
-		std::unique_ptr<Room> clone() {
-			return std::make_unique<Room>(*this);
+		std::shared_ptr<Room> clone() {
+			return std::make_shared<Room>(*this);
 		}
 	};
 
 	struct Floor {
 		unsigned short int level;
-		std::vector<std::unique_ptr<Room>> rooms;
+		std::vector<std::shared_ptr<Room>> rooms;
 		std::vector<std::vector<int>> floorMask;
 		Location exitCoordinates;
 		bool canGoUp = true;
 		bool canGoDown = true;
 
-		Floor(unsigned short int _level, std::vector<std::unique_ptr<Room>>&& _rooms,
+		Floor(unsigned short int _level, std::vector<std::shared_ptr<Room>> _rooms,
 			std::vector<std::vector<int>> _floorMask, Location _exitCoordinates, bool _canGoUp, bool _canGoDown) :
 			level(_level),
-			rooms(std::move(_rooms)),
+			rooms(_rooms),
 			floorMask(_floorMask),
 			exitCoordinates(_exitCoordinates),
 			canGoUp(_canGoUp),
@@ -296,7 +299,7 @@ namespace Gigahrush {
 	//GameData
 
 	struct GameData {
-		std::vector<std::unique_ptr<Floor>> floors;
+		std::vector<std::shared_ptr<Floor>> floors;
 		std::vector<std::shared_ptr<Player>> players;
 	};
 }

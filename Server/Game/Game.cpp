@@ -1,6 +1,14 @@
 ﻿#include "Game.h"
 
 namespace Gigahrush {
+	std::string toLowerCase(std::string str) {
+		std::string res = "";
+		for (auto c : str) {
+			res += std::tolower(c);
+		}
+		return res;
+	}
+
 	void Configurator::LoadMapSize() {
 		JSONParser& js = JSONParser::Instance();
 
@@ -56,7 +64,9 @@ namespace Gigahrush {
 			}
 
 			config.items.push_back(std::move(item));
-			config.itemSpawnChances.push_back(SpawnChance(ItemsConfig[i]["id"], ItemsConfig[i]["spawnChance"]));
+			if (ItemsConfig[i]["canSpawn"] == true) {
+				config.itemSpawnChances.push_back(SpawnChance(ItemsConfig[i]["id"], ItemsConfig[i]["spawnChance"]));
+			}
 		}
 
 		std::cout << "=== Items loaded ===" << std::endl;
@@ -484,7 +494,7 @@ namespace Gigahrush {
 		}
 	}
 
-	void Game::PrintRoomInfo(std::unique_ptr<Room>& rm) {
+	void Game::PrintRoomInfo(std::shared_ptr<Room>& rm) {
 		std::cout << "\n# Room " << rm->ID << "\n\n";
 		std::cout << "ID: " << rm->ID << "\nName: " << rm->name
 			<< "\nDescription: " << rm->description << "\n"
@@ -517,7 +527,7 @@ namespace Gigahrush {
 		}
 	}
 
-	void Game::GenerateItemsAndEnemies(std::unique_ptr<Room>& rm) {
+	void Game::GenerateItemsAndEnemies(std::shared_ptr<Room>& rm) {
 		//Gen items
 		std::vector<RoomDescElement> itemDescription;
 		std::vector<std::unique_ptr<Item>> items;
@@ -629,7 +639,7 @@ namespace Gigahrush {
 		rm->enemies = std::move(enemies);
 	}
 
-	std::unique_ptr<Room> Game::GenerateRoom(Location loc, bool isExit) {
+	std::shared_ptr<Room> Game::GenerateRoom(Location loc, bool isExit) {
 		int RoomID = 0;
 
 		//Random algoritm
@@ -651,7 +661,7 @@ namespace Gigahrush {
 			}
 		}
 		//End random
-		std::unique_ptr<Room> room;
+		std::shared_ptr<Room> room;
 
 		for (auto& rm : configurator.config.rooms) {
 			if (rm->ID == RoomID) {
@@ -672,9 +682,9 @@ namespace Gigahrush {
 		for (int i = 1; i <= configurator.config.mapSize.FloorCount; i++) {
 			//std::cout << "\nFloor - " << i << "\n\n";
 
-			std::unique_ptr<Floor> flr = std::make_unique<Floor>(
+			std::shared_ptr<Floor> flr = std::make_shared<Floor>(
 				0,
-				std::vector<std::unique_ptr<Room>>{},
+				std::vector<std::shared_ptr<Room>>{},
 				std::vector<std::vector<int>>{},
 				Location{ 0, 0, 0 },
 				true,
@@ -725,7 +735,7 @@ namespace Gigahrush {
 				}
 				//std::cout << "\n";
 			}
-			gamedata.floors.push_back(std::move(flr));
+			gamedata.floors.push_back(flr);
 		}
 	}
 
@@ -787,8 +797,65 @@ namespace Gigahrush {
 
 	std::shared_ptr<Player> Game::SpawnPlayer(std::string& name) {
 		std::shared_ptr<Player> ply = std::make_shared<Player>();
+
+		//Random spawning
+
+		for (auto& it : gamedata.floors) {
+			if (it->level == 1) {
+				ply->floor = it;
+				ply->status = NotInBattle;
+				ply->location = it->rooms[rand() % it->rooms.size()];
+			}
+		}
+
 		gamedata.players.push_back(ply);
 		return ply;
+	}
+
+	std::string Game::Look(std::shared_ptr<Gigahrush::Player> ply) {
+		std::string res = ply->location->name + "\n" + ply->location->description + "\n\n";
+		for (auto& it : ply->location->itemDescription) {
+			res += it.desc + "\n";
+		}
+		res += "\n";
+		for (auto& it : ply->location->enemyDescription) {
+			res += it.desc + "\n";
+		}
+		res += "Вы можете пойти на ";
+
+		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y + 1] == 1) {
+			res += "север, ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y - 1] == 1) {
+			res += "юг, ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X - 1][ply->location->location.Y] == 1) {
+			res += "запад, ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X + 1][ply->location->location.Y] == 1) {
+			res += "восток.";
+		}
+		
+		res += "\nКарта:\n";
+
+		for (int y = 0; y < ply->floor->floorMask.size(); y++) {
+			for (int x = 0; x < ply->floor->floorMask[0].size(); x++) {
+				if (ply->floor->floorMask[x][y] == 0) {
+					res += " ";
+				}
+				else {
+					if (x == ply->location->location.X && y == ply->location->location.Y) {
+						res += "@";
+					}
+					else {
+						res += "#";
+					}
+				}
+			}
+			res += "\n";
+		}
+
+		return res;
 	}
 
 	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
@@ -796,10 +863,10 @@ namespace Gigahrush {
 
 		std::cout << "Запрос от игрока под ником " << ply->username << "\n";
 
-		if (command == "ХУЙ") {
-			return "Иди нахуй сука";
+		if (toLowerCase(command) == "осмотреться") {
+			return Look(ply);
 		}
 
-		return "Елда!";
+		return "Неизвестная команда.";
 	}
 }

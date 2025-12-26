@@ -51,10 +51,10 @@ namespace Gigahrush {
 			Game& operator= (Game const&) = delete;
 
 			void GenerateFloors();
-			std::unique_ptr<Room> GenerateRoom(Location, bool);
-			void GenerateItemsAndEnemies(std::unique_ptr<Room>&);
+			std::shared_ptr<Room> GenerateRoom(Location, bool);
+			void GenerateItemsAndEnemies(std::shared_ptr<Room>&);
 
-			void PrintRoomInfo(std::unique_ptr<Room>&);
+			void PrintRoomInfo(std::shared_ptr<Room>&);
 			bool changeDir(std::vector<std::vector<int>>&, int&, int&, int&);
 			void GenerateBranchMask(std::vector<std::vector<int>>&, int, int, int, int);
 			void GenerateFloorMask(std::vector<std::vector<int>>&, int, int, int, int);
@@ -72,6 +72,12 @@ namespace Gigahrush {
 			void ResetGame();
 
 			void Info();
+
+			//Commands
+
+			std::string Look(std::shared_ptr<Gigahrush::Player>);
+
+			//EndCommands
 
 			std::shared_ptr<Gigahrush::Player> SpawnPlayer(std::string&);
 			std::string ParseCommand(std::shared_ptr<Gigahrush::Player>, std::string&);
