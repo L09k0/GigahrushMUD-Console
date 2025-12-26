@@ -732,7 +732,7 @@ namespace Gigahrush {
 	bool Game::GenerateGame() {
 		gamedata = GameData();
 		std::cout << "=== GENERATING GAME ===\n\n";
-		if (configurator.config.configLoaded == true) { //&& isGenerated == false
+		if (configurator.config.configLoaded == true && isGenerated == false) {
 			auto start = std::chrono::high_resolution_clock::now();
 			GenerateFloors();
 			auto end = std::chrono::high_resolution_clock::now();
@@ -742,12 +742,10 @@ namespace Gigahrush {
 			return true;
 		}
 		else {
-			/*
 			if (isGenerated) {
 				std::cout << "Can't generate game, already generated. Please type 'reset' for reset game.\n";
 				return false;
 			}
-			*/
 
 			std::cout << "Can't generate game, config is not loaded\n";
 			return false;

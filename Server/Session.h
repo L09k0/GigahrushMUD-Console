@@ -11,8 +11,6 @@ private:
 	Gigahrush::Game& game;
 	std::shared_ptr<Gigahrush::Player> sessionPlayer;
 
-	bool isAuth = false;
-
 public:
 	Session(asio::ip::tcp::socket&& socket);
 	~Session();

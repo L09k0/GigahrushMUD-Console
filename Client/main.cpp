@@ -61,7 +61,7 @@ int main()
 
 	std::string nick;
 	do {
-		std::cout << "> Введите ник: ";
+		std::cout << "Введите ник: \n> ";
 		std::getline(std::cin, nick);
 	} while (nick == "");
 
