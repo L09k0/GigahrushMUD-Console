@@ -1,6 +1,6 @@
 ﻿#include "Client.h"
 
-Client::Client(asio::io_context& io_context_, char* ip, char* port) :
+Client::Client(asio::io_context& io_context_, std::string ip, std::string port) :
 	io_context(io_context_),
 	socket(io_context),
 	resolver(io_context),

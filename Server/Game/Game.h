@@ -84,7 +84,7 @@ namespace Gigahrush {
 			std::string DropItem(std::shared_ptr<Player>, std::string);
 			std::string PickupItem(std::shared_ptr<Player>, std::string);
 			std::string Inventory(std::shared_ptr<Player>);
-
+			std::string ChangeFloor(std::shared_ptr<Player>, int);
 			//EndCommands
 
 			std::shared_ptr<Gigahrush::Player> SpawnPlayer(std::string&);

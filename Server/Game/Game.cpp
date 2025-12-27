@@ -820,7 +820,7 @@ namespace Gigahrush {
 	}
 
 	std::string Game::Map(std::shared_ptr<Player> ply) {
-		std::string res = ""; //"Карта:\n";
+		std::string res = "@ - Вы\n0 - Выход на этажи\n\n"; //"Карта:\n";
 
 		for (int y = 0; y < ply->floor->floorMask.size(); y++) {
 			for (int x = 0; x < ply->floor->floorMask[0].size(); x++) {
@@ -832,7 +832,12 @@ namespace Gigahrush {
 						res += "@";
 					}
 					else {
-						res += "#";
+						if (x == ply->floor->exitCoordinates.X && y == ply->floor->exitCoordinates.Y){
+							res += "0";
+						}
+						else {
+							res += "#";
+						}
 					}
 				}
 			}
@@ -864,7 +869,15 @@ namespace Gigahrush {
 			res += "запад ";
 		}
 		if (ply->floor->floorMask[ply->location->location.X + 1][ply->location->location.Y] == 1) {
-			res += "восток";
+			res += "восток ";
+		}
+		if (ply->location->isExit == true) {
+			if (ply->floor->canGoUp == true) {
+				res += "\nИз этой локации вы можете подняться на этаж выше";
+			}
+			if (ply->floor->canGoDown == true) {
+				res += "\nИз этой локации вы можете опуститься на этаж ниже";
+			}
 		}
 
 		return res;
@@ -965,7 +978,23 @@ namespace Gigahrush {
 	}
 
 	std::string Game::DropItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
-		return "Бросить";
+		std::string res = "У вас нет этого предмета в инвентаре";
+		for (int i = 0; i < ply->inventory.size(); i++) {
+			if (ply->inventory[i]->name == item) {
+				ply->location->items.push_back(ply->inventory[i]->clone());
+				res = "Вы выбросили " + ply->inventory[i]->name;
+				std::string phrase = "";
+				for (auto& it : configurator.config.roomDescs) {
+					if (ply->location->ID == it.ID) {
+						phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(item));
+					}
+				}
+				ply->location->itemDescription.push_back(RoomDescElement(ply->inventory[i]->ID, phrase));
+				ply->inventory.erase(ply->inventory.begin() + i);
+				break;
+			}
+		}
+		return res;
 	}
 
 	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
@@ -1000,6 +1029,68 @@ namespace Gigahrush {
 		for (auto& it : ply->inventory) {
 			res += "\n" + std::to_string(i) + ". " + it->name;
 			++i;
+		}
+
+		return res;
+	}
+
+	std::string Game::ChangeFloor(std::shared_ptr<Player> ply, int dir) { 
+		//1 - up 0 - down
+		std::string res = "";
+		std::shared_ptr<Floor> flrToChange = nullptr;
+		std::shared_ptr<Room> roomToChange = nullptr;
+
+		bool canChange = false;
+
+		if (ply->location->isExit == true) {
+			switch (dir) {
+			case 0:
+				if (ply->floor->canGoDown == true) {
+					for (auto& it : gamedata.floors) {
+						if (it->level == ply->floor->level-1) {
+							flrToChange = it;
+							for (auto& at : it->rooms) {
+								if (at->location == it->exitCoordinates) {
+									roomToChange = at;
+									canChange = true;
+									res = "Вы опустились на " + std::to_string(it->level)+ " этаж";
+								}
+							}
+						}
+					}
+				}
+				else {
+					res = "Вы не можете спуститься ниже";
+				}
+				break;
+			case 1:
+				if (ply->floor->canGoUp == true) {
+					for (auto& it : gamedata.floors) {
+						if (it->level == ply->floor->level + 1) {
+							flrToChange = it;
+							for (auto& at : it->rooms) {
+								if (at->location == it->exitCoordinates) {
+									roomToChange = at;
+									canChange = true;
+									res = "Вы поднялись на " + std::to_string(it->level) + " этаж";
+								}
+							}
+						}
+					}
+				}
+				else {
+					res = "Вы не можете подняться ниже";
+				}
+				break;
+			}
+		}
+		else {
+			res = "Вы не можете поменять этаж в этой комнате";
+		}
+
+		if (canChange) {
+			ply->location = roomToChange;
+			ply->floor = flrToChange;
 		}
 
 		return res;
@@ -1051,12 +1142,25 @@ namespace Gigahrush {
 					return "Неправильный синтаксис";
 				}
 			}
-
+			else if (splitCommand[0] == "выбросить") {
+				if (splitCommand.size() >= 2) {
+					return DropItem(ply, splitCommand[1]);
+				}
+				else {
+					return "Неправильный синтаксис";
+				}
+			}
 			else if (splitCommand[0] == "карта") {
 				return Map(ply);
 			}
 			else if (splitCommand[0] == "инвентарь") {
 				return Inventory(ply);
+			}
+			else if (splitCommand[0] == "вверх") {
+				return ChangeFloor(ply, 1);
+			}
+			else if (splitCommand[0] == "вниз") {
+				return ChangeFloor(ply, 0);
 			}
 		}
 		else {

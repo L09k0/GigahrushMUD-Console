@@ -52,9 +52,16 @@ int main()
 		setlocale(LC_ALL, "ru_RU.UTF-8");
 	#endif
 	//Config
+	
 
-	char ip[] = "localhost";
-	char port[] = "15001";
+
+	std::string ip;
+	std::string port;
+
+	std::cout << "Введите IP: ";
+	std::getline(std::cin, ip);
+	std::cout << "Введите порт: ";
+	std::getline(std::cin, port);
 
 	//audiere::AudioDevicePtr device = audiere::OpenDevice();
 	//audiere::SoundEffect* sound = audiere::OpenSoundEffect(device, "effect.mp3", audiere::SINGLE);
