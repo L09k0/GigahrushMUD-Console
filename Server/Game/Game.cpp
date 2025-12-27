@@ -88,7 +88,7 @@ namespace Gigahrush {
 				}
 			}
 
-			config.enemies.push_back(std::make_unique<Enemy>(
+			config.enemies.push_back(std::make_shared<Enemy>(
 				EnemiesConfig[i]["id"],
 				EnemiesConfig[i]["name"],
 				EnemiesConfig[i]["description"],
@@ -116,7 +116,7 @@ namespace Gigahrush {
 				std::vector<RoomDescElement>{},
 				std::vector<RoomDescElement>{},
 				std::vector<std::unique_ptr<Item>>{},
-				std::vector<std::unique_ptr<Enemy>>{},
+				std::vector<std::shared_ptr<Enemy>>{},
 				RoomsConfig[i]["isExit"],
 				Location()
 			));
@@ -298,7 +298,7 @@ namespace Gigahrush {
 		LoadCrafts();
 
 		config.configLoaded = true;
-		std::cout << "Config loaded!\n\n";
+		std::cout << "Config loaded!\n";
 		return true;
 		ShowAllConfig();
 	}
@@ -503,7 +503,7 @@ namespace Gigahrush {
 			std::cout << "Name: " << it->name << "\n";
 		}
 
-		std::cout << "--- items room descs ---\n\n";
+		std::cout << "--- Items room descs ---\n\n";
 
 		for (auto& t : rm->itemDescription) {
 			std::cout << "Room description: " << t.desc << "\n";
@@ -515,7 +515,7 @@ namespace Gigahrush {
 			std::cout << "Name: " << it->name << "\n";
 		}
 
-		std::cout << "--- enemy room descs ---\n\n";
+		std::cout << "--- Enemy room descs ---\n\n";
 
 		for (auto& t : rm->enemyDescription) {
 			std::cout << "Room description: " << t.desc << "\n";
@@ -576,7 +576,7 @@ namespace Gigahrush {
 
 		//Gen enemy
 		std::vector<RoomDescElement> enemyDescription;
-		std::vector<std::unique_ptr<Enemy>> enemies;
+		std::vector<std::shared_ptr<Enemy>> enemies;
 
 		if (rand() % 100 <= 25) {
 			int enemyCount = (rand() % (configurator.config.maxRoomItems / 2)) + 1;
@@ -631,7 +631,7 @@ namespace Gigahrush {
 		rm->enemyDescription = enemyDescription;
 
 		rm->items = std::move(items);
-		rm->enemies = std::move(enemies);
+		rm->enemies = enemies;
 	}
 
 	std::shared_ptr<Room> Game::GenerateRoom(Location loc, bool isExit) {
@@ -736,7 +736,7 @@ namespace Gigahrush {
 
 	bool Game::GenerateGame() {
 		gamedata = GameData();
-		std::cout << "=== GENERATING GAME ===\n\n";
+		std::cout << "Generating game...\n";
 		if (configurator.config.configLoaded == true && isGenerated == false) {
 			auto start = std::chrono::high_resolution_clock::now();
 			GenerateFloors();
@@ -778,7 +778,7 @@ namespace Gigahrush {
 				}
 			}
 
-			std::cout << "=== GAME INFO ===\n\n";
+			std::cout << "=== GAME INFO ===\n";
 			std::cout << "Floors count: " << gamedata.floors.size() << "\n";
 			std::cout << "Rooms count: " << rooms << "\n";
 			std::cout << "Items count: " << items << "\n";
@@ -795,7 +795,7 @@ namespace Gigahrush {
 
 		//Random spawning
 
-		ply->status = NotInBattle;
+		ply->battleStatus.status = NotInBattle;
 		ply->stats = PlayerStats(100, 0, 0, configurator.config.maxInventorySize, 0); //health,armor,level, max inv size,weaponskills
 
 		for (auto& it : gamedata.floors) {
@@ -815,34 +815,12 @@ namespace Gigahrush {
 			"Вместимость инвентаря: " + std::to_string(ply->stats.inventoryMaxSize) + "\n" +
 			"Здоровье: " + std::to_string(ply->stats.health) + "\n" +
 			"Броня: " + std::to_string(ply->stats.armor) + "\n" +
-			"Навык владения оружием: " + std::to_string(ply->stats.weaponSkill) + "\n";
+			"Навык владения оружием: " + std::to_string(ply->stats.weaponSkill);
 		return res;
 	}
 
-	std::string Game::Look(std::shared_ptr<Gigahrush::Player> ply) {
-		std::string res = ply->location->name + "\n" + ply->location->description + "\n";
-		for (auto& it : ply->location->itemDescription) {
-			res += it.desc + "\n";
-		}
-		for (auto& it : ply->location->enemyDescription) {
-			res += it.desc + "\n";
-		}
-		res += "Вы можете пойти на ";
-
-		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y + 1] == 1) {
-			res += "север, ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y - 1] == 1) {
-			res += "юг, ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X - 1][ply->location->location.Y] == 1) {
-			res += "запад, ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X + 1][ply->location->location.Y] == 1) {
-			res += "восток.";
-		}
-		
-		res += "\nКарта:\n";
+	std::string Game::Map(std::shared_ptr<Player> ply) {
+		std::string res = ""; //"Карта:\n";
 
 		for (int y = 0; y < ply->floor->floorMask.size(); y++) {
 			for (int x = 0; x < ply->floor->floorMask[0].size(); x++) {
@@ -864,19 +842,133 @@ namespace Gigahrush {
 		return res;
 	}
 
-	std::string Game::Move(std::shared_ptr<Gigahrush::Player>, std::string side) {
-		return "Передвижение";
+	std::string Game::Look(std::shared_ptr<Gigahrush::Player> ply) {
+		std::string res = ply->location->name + ": Этаж " + std::to_string(ply->floor->level) + "\n" +
+			"Координаты: [" + std::to_string(ply->location->location.X) + ", " + std::to_string(ply->location->location.Y) + "]\n"+
+			ply->location->description + "\n";
+		for (auto& it : ply->location->itemDescription) {
+			res += it.desc + "\n";
+		}
+		for (auto& it : ply->location->enemyDescription) {
+			res += it.desc + "\n";
+		}
+		res += "Вы можете пойти на ";
+
+		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y - 1] == 1) {
+			res += "север ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y + 1] == 1) {
+			res += "юг ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X - 1][ply->location->location.Y] == 1) {
+			res += "запад ";
+		}
+		if (ply->floor->floorMask[ply->location->location.X + 1][ply->location->location.Y] == 1) {
+			res += "восток";
+		}
+
+		return res;
 	}
 
-	std::string Game::Craft(std::shared_ptr<Gigahrush::Player>, std::string item) {
+	std::string Game::Move(std::shared_ptr<Gigahrush::Player> ply, std::string side) {
+		std::string res = "";
+
+		std::vector<std::vector<int>> mask = ply->floor->floorMask;
+		int posX = ply->location->location.X;
+		int posY = ply->location->location.Y;
+
+		if (side == "север") {
+			if (posX < 0 || posX >= mask.size() || posY-1 < 0 || posY-1 >= mask[0].size()) {
+				return "Вы не можете пойти в эту сторону.";
+			}
+
+			if (mask[posX][posY - 1] == 1) {
+				for (auto& it : ply->floor->rooms) {
+					if (it->location.X == posX && it->location.Y == posY - 1) {
+						ply->location = it;
+						res = "Вы переместились\n";
+						res += Look(ply);
+						break;
+					}
+				}
+			}
+			else {
+				res = "Вы не можете пойти в эту сторону.";
+			}
+		}
+		else if (side == "юг") {
+			if (posX < 0 || posX >= mask.size() || posY + 1 < 0 || posY + 1 >= mask[0].size()) {
+				return "Вы не можете пойти в эту сторону.";
+			}
+
+			if (mask[posX][posY + 1] == 1) {
+				for (auto& it : ply->floor->rooms) {
+					if (it->location.X == posX && it->location.Y == posY + 1) {
+						ply->location = it;
+						res = "Вы переместились\n";
+						res += Look(ply);
+						break;
+					}
+				}
+			}
+			else {
+				res = "Вы не можете пойти в эту сторону.";
+			}
+		}
+		else if (side == "запад") {
+			if (posX - 1 < 0 || posX - 1 >= mask.size() || posY < 0 || posY >= mask[0].size()) {
+				return "Вы не можете пойти в эту сторону.";
+			}
+
+			if (mask[posX - 1][posY] == 1) {
+				for (auto& it : ply->floor->rooms) {
+					if (it->location.X == posX - 1 && it->location.Y == posY) {
+						ply->location = it;
+						res = "Вы переместились\n";
+						res += Look(ply);
+						break;
+					}
+				}
+			}
+			else {
+				res = "Вы не можете пойти в эту сторону.";
+			}
+		}
+		else if (side == "восток") {
+			if (posX + 1 < 0 || posX + 1 >= mask.size() || posY < 0 || posY >= mask[0].size()) {
+				return "Вы не можете пойти в эту сторону.";
+			}
+
+			if (mask[posX + 1][posY] == 1) {
+				for (auto& it : ply->floor->rooms) {
+					if (it->location.X == posX + 1 && it->location.Y == posY) {
+						ply->location = it;
+						res = "Вы переместились\n";
+						res += Look(ply);
+						break;
+					}
+				}
+			}
+			else {
+				res = "Вы не можете пойти в эту сторону.";
+			}
+		}
+		else {
+			res = "Неизвестная сторона.";
+		}
+
+		return res;
+	}
+
+	std::string Game::Craft(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
 		return "Крафт";
 	}
 
-	std::string Game::DropItem(std::shared_ptr<Gigahrush::Player>, std::string item) {
+	std::string Game::DropItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
 		return "Бросить";
 	}
 
-	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player>, std::string item) {
+	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
 		return "Поднять";
 	}
 
@@ -885,11 +977,45 @@ namespace Gigahrush {
 
 		std::cout << "Запрос от игрока под ником " << ply->username << "\n";
 
-		if (toLowerCase(command) == "осмотреться") {
-			return Look(ply);
+		std::vector<std::string> splitCommand;
+		std::stringstream ss(command);
+		std::string word;
+
+		while (ss >> word) {
+			splitCommand.push_back(word);
 		}
-		else if (toLowerCase(command) == "я") {
-			return Me(ply);
+
+		if (ply->battleStatus.status != InBattle) {
+			if (toLowerCase(splitCommand[0]) == "осмотреться") {
+				return Look(ply);
+			}
+			else if (toLowerCase(splitCommand[0]) == "я") {
+				return Me(ply);
+			}
+			else if (toLowerCase(splitCommand[0]) == "идти") {
+				if (splitCommand.size() >= 2) {
+					if (toLowerCase(splitCommand[1]) == "на") {
+						if (splitCommand.size() >= 3) {
+							return Move(ply, splitCommand[2]);
+						}
+						else {
+							return "Неправильный синтаксис команды.";
+						}
+					}
+					else {
+						return "Неправильный синтаксис команды.";
+					}
+				}
+				else {
+					return "Неправильный синтаксис";
+				}
+			}
+			else if (toLowerCase(splitCommand[0]) == "карта") {
+				return Map(ply);
+			}
+		}
+		else {
+			return "Вы в бою";
 		}
 
 		return "Неизвестная команда.";

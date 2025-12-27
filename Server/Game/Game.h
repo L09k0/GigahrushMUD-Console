@@ -5,6 +5,7 @@
 #include <format>
 #include <chrono>
 #include <mutex>
+#include <sstream>
 
 namespace Gigahrush {
 	struct Config {
@@ -19,7 +20,7 @@ namespace Gigahrush {
 		std::vector<SpawnChance> enemySpawnChances;
 
 		std::vector<std::unique_ptr<Item>> items;
-		std::vector<std::unique_ptr<Enemy>> enemies;
+		std::vector<std::shared_ptr<Enemy>> enemies;
 		std::vector<std::unique_ptr<Room>> rooms;
 
 		std::size_t maxInventorySize;
@@ -75,12 +76,13 @@ namespace Gigahrush {
 
 			//Commands
 
-			std::string Me(std::shared_ptr<Gigahrush::Player>);
-			std::string Look(std::shared_ptr<Gigahrush::Player>);
-			std::string Move(std::shared_ptr<Gigahrush::Player>, std::string);
-			std::string Craft(std::shared_ptr<Gigahrush::Player>, std::string);
-			std::string DropItem(std::shared_ptr<Gigahrush::Player>, std::string);
-			std::string PickupItem(std::shared_ptr<Gigahrush::Player>, std::string);
+			std::string Map(std::shared_ptr<Player>);
+			std::string Me(std::shared_ptr<Player>);
+			std::string Look(std::shared_ptr<Player>);
+			std::string Move(std::shared_ptr<Player>, std::string);
+			std::string Craft(std::shared_ptr<Player>, std::string);
+			std::string DropItem(std::shared_ptr<Player>, std::string);
+			std::string PickupItem(std::shared_ptr<Player>, std::string);
 
 
 			//EndCommands

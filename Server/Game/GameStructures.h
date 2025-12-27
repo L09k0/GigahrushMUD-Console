@@ -182,12 +182,17 @@ namespace Gigahrush {
 		int weaponSkill;
 	};
 
+	struct Battle {
+		Status status;
+		std::shared_ptr<Enemy> enemy;
+	};
+
 	struct Player {
 		std::string username;
 		std::shared_ptr<Room> location;
 		std::shared_ptr<Floor> floor;
 		std::vector<std::unique_ptr<Item>> inventory;
-		Status status;
+		Battle battleStatus;
 		PlayerStats stats;
 	};
 
@@ -203,7 +208,7 @@ namespace Gigahrush {
 		std::vector<RoomDescElement> itemDescription;
 		std::vector<RoomDescElement> enemyDescription;
 		std::vector<std::unique_ptr<Item>> items;
-		std::vector<std::unique_ptr<Enemy>> enemies;
+		std::vector<std::shared_ptr<Enemy>> enemies;
 		bool isExit;
 		Location location;
 
@@ -211,14 +216,14 @@ namespace Gigahrush {
 			std::vector<RoomDescElement> _itemDescription,
 			std::vector<RoomDescElement> _enemyDescription,
 			std::vector<std::unique_ptr<Item>>&& _items,
-			std::vector<std::unique_ptr<Enemy>>&& _enemies, bool _isExit, Location _location) :
+			std::vector<std::shared_ptr<Enemy>> _enemies, bool _isExit, Location _location) :
 			ID(_ID),
 			name(_name),
 			description(_description),
 			itemDescription(_itemDescription),
 			enemyDescription(_enemyDescription),
 			items(std::move(_items)),
-			enemies(std::move(_enemies)),
+			enemies(_enemies),
 			isExit(_isExit),
 			location(_location) {}
 
