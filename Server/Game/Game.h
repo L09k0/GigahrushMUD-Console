@@ -6,6 +6,7 @@
 #include <chrono>
 #include <mutex>
 #include <sstream>
+#include <algorithm>
 
 namespace Gigahrush {
 	struct Config {

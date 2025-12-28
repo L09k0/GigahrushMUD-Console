@@ -978,7 +978,76 @@ namespace Gigahrush {
 	}
 
 	std::string Game::Craft(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
-		return "Крафт";
+		std::string res = "";
+		std::unordered_map<int, int> craft; //id - count;
+		std::unordered_map<int, int> enable; //id - count;
+		std::unique_ptr<Item> itemToCraft = nullptr;
+		bool itemFound = false;
+		bool hasCraft = false;
+		for (auto& it : configurator.config.items) {
+			if (it->name == item) {
+				itemToCraft = it->clone();
+				itemFound = true;
+				break;
+			}
+		}
+
+		if (itemFound) {
+			for (auto it : configurator.config.crafts) {
+				if (it.ID == itemToCraft->ID) {
+					for (auto xd : it.craft) {
+						++craft[xd];
+						hasCraft = true;
+					}
+					break;
+				}
+				else {
+					hasCraft = false;
+				}
+			}
+			if (hasCraft) {
+				//Ищем предметы в инвентаре
+				for (auto& it : ply->inventory) {
+					++enable[it->ID];
+				}
+				//Сравниваем с крафтом
+				bool canCraft = true;
+
+				for (auto [id, count] : craft) {
+					if (enable[id] < count) {
+						canCraft = false;
+						break;
+					}
+				}
+
+				if (canCraft) {
+					for (auto [id, count] : craft) {
+						int delRemain = count;
+
+						for (int i = ply->inventory.size() - 1; i >= 0 && delRemain > 0; i--) {
+							if (ply->inventory[i]->ID == id) {
+								res = "\nВы потеряли " + ply->inventory[i]->name;
+								ply->inventory.erase(ply->inventory.begin() + i);
+								--delRemain;
+							}
+						}
+					}
+					res = "Вы успешно скрафтили предмет - " + itemToCraft->name;
+					ply->inventory.push_back(std::move(itemToCraft));
+				}
+				else {
+					res = "Недостаточно ресурсов для крафта";
+				}
+			}
+			else {
+				res = "У этого предмета нет крафта";
+			}
+		}
+		else {
+			res = "Предмет не найден";
+		}
+
+		return res;
 	}
 
 	std::string Game::DropItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
@@ -1165,6 +1234,14 @@ namespace Gigahrush {
 			}
 			else if (splitCommand[0] == "вниз") {
 				return ChangeFloor(ply, 0);
+			}
+			else if (splitCommand[0] == "создать") {
+				if (splitCommand.size() >= 2) {
+					return Craft(ply, splitCommand[1]);
+				}
+				else {
+					return "Неправильный синтаксис";
+				}
 			}
 		}
 		else {
