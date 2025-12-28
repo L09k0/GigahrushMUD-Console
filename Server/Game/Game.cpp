@@ -1169,6 +1169,73 @@ namespace Gigahrush {
 		return res;
 	}
 
+	std::string Game::LookItem(std::shared_ptr<Player> ply, std::string item) {
+		std::string res = "У вас не такого предмета";
+
+		for (auto& it : ply->inventory) {
+			if (it->name == item) {
+				res = it->description + "\nПри использовании " + it->useDescription;
+				break;
+			}
+		}
+
+		return res;
+	}
+
+	std::string Game::EnableCrafts(std::shared_ptr<Player> ply) {
+		std::string res = "Доступные крафты: ";
+
+		std::unordered_map<int, int> plyInv;
+		std::vector<int> recipesCanBeCrafted;
+
+		for (auto& it : ply->inventory) {
+			++plyInv[it->ID];
+		}
+
+		for (auto it : configurator.config.crafts) {
+			bool canCraft = true;
+			std::unordered_map<int, int> recipe;
+			for (auto& cr : it.craft) {
+				++recipe[cr];
+			}
+
+			for (auto [id, count] : recipe) {
+				if (plyInv[id] < count) { canCraft = false; break; };
+			}
+
+			if (canCraft) {
+				recipesCanBeCrafted.push_back(it.ID);
+			}
+		}
+		size_t counter = 1;
+		for (auto x : recipesCanBeCrafted) {
+			for (auto& it : configurator.config.items) {
+				if (x == it->ID) {
+					res += "\n" + std::to_string(counter) + ". " + it->name;
+					break;
+				}
+			}
+		}
+
+		return res;
+	}
+
+	std::string Game::UseItem(std::shared_ptr<Player> ply, std::string item) {
+		std::string res = "У вас нет этого предмета";
+		for (int i = 0; i < ply->inventory.size(); i++) {
+			if (ply->inventory[i]->name == item) {
+				std::pair<std::string,bool> useRes = ply->inventory[i]->use(ply);
+				res = useRes.first;
+				if (useRes.second == true) {
+					ply->inventory.erase(ply->inventory.begin() + i);
+				}
+				break;
+			}
+		}
+
+		return res;
+	}
+
 	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
 		std::lock_guard<std::mutex> lock(game_mutex);
 
@@ -1238,6 +1305,25 @@ namespace Gigahrush {
 			else if (splitCommand[0] == "создать") {
 				if (splitCommand.size() >= 2) {
 					return Craft(ply, splitCommand[1]);
+				}
+				else {
+					return "Неправильный синтаксис";
+				}
+			}
+			else if (splitCommand[0] == "рецепты") {
+				return EnableCrafts(ply);
+			}
+			else if (splitCommand[0] == "осмотреть") {
+				if (splitCommand.size() >= 2) {
+					return LookItem(ply, splitCommand[1]);
+				}
+				else {
+					return "Неправильный синтаксис";
+				}
+			}
+			else if (splitCommand[0] == "использовать") {
+				if (splitCommand.size() >= 2) {
+					return UseItem(ply, splitCommand[1]);
 				}
 				else {
 					return "Неправильный синтаксис";

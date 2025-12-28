@@ -65,12 +65,14 @@ namespace Gigahrush {
 
 			virtual ~Item();
 			virtual std::unique_ptr<Item> clone() const = 0;
-			virtual std::string use(Player&);
+			virtual std::string getDescription() const = 0;
+			virtual std::pair<std::string, bool> use(std::shared_ptr<Player>&);
 	};
 
 	class Component : public Item {
 		public:
-			std::string use(Player&) override;
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			std::string getDescription() const override;
 
 			Component(const Component& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
@@ -82,7 +84,8 @@ namespace Gigahrush {
 
 	class Weapon : public Item {
 		public:
-			std::string use(Player&) override;
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			std::string getDescription() const override;
 
 			Weapon(const Weapon& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
@@ -94,7 +97,8 @@ namespace Gigahrush {
 
 	class Food : public Item {
 		public:
-			std::string use(Player&) override;
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			std::string getDescription() const override;
 
 			Food(const Food& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
@@ -106,7 +110,8 @@ namespace Gigahrush {
 
 	class HealingItem : public Item {
 		public:
-			std::string use(Player&) override;
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			std::string getDescription() const override;
 
 			HealingItem(const HealingItem& other) : Item(other) {};
 			std::unique_ptr<Item> clone() const override {
