@@ -24,7 +24,6 @@ void Session::firstTime() {
 				self->buffer.resize(bytes_received);
 				if (Gigahrush::Game::Instance().isGenerated) {
 					if (self->buffer.data() != "") {
-						std::size_t bt = asio::write(self->socket, asio::buffer("Вы успешно вошли!"));
 
 						bool plyFound = false;
 
@@ -45,6 +44,9 @@ void Session::firstTime() {
 						self->sessionPlayer->username = self->buffer;
 						std::cout << "User has joined the game with nick: " << self->sessionPlayer->username << "\n";
 						self->buffer.resize(256);
+						std::string first = "Вы успешно вошли\n" + Gigahrush::Game::Instance().Look(self->sessionPlayer);
+						std::size_t bt = asio::write(self->socket, asio::buffer(first));
+
 						self->read();
 					}
 					else {
@@ -72,7 +74,7 @@ void Session::read() {
 				self->buffer.resize(bytes_received);
 				//std::cout << "\n\nREAD DEBUG\n\n";
 				if (Gigahrush::Game::Instance().gamedata.players.size() != 0) {
-					std::string answer = self->game.ParseCommand(self->sessionPlayer,self->buffer);
+					std::string answer = self->game.ParseCommand(self->sessionPlayer, self->buffer);
 					std::size_t bt = asio::write(self->socket, asio::buffer(answer));
 					self->buffer.resize(256);
 					self->read();
