@@ -52,8 +52,6 @@ int main()
 		setlocale(LC_ALL, "ru_RU.UTF-8");
 	#endif
 	//Config
-	
-
 
 	std::string ip;
 	std::string port;

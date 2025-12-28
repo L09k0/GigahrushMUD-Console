@@ -66,12 +66,12 @@ namespace Gigahrush {
 			virtual ~Item();
 			virtual std::unique_ptr<Item> clone() const = 0;
 			virtual std::string getDescription() const = 0;
-			virtual std::pair<std::string, bool> use(std::shared_ptr<Player>&);
+			virtual std::pair<std::string, bool> use(std::shared_ptr<Player>&) const = 0;
 	};
 
 	class Component : public Item {
 		public:
-			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) const override;
 			std::string getDescription() const override;
 
 			Component(const Component& other) : Item(other) {};
@@ -84,41 +84,47 @@ namespace Gigahrush {
 
 	class Weapon : public Item {
 		public:
-			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			int damage;
+
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) const override;
 			std::string getDescription() const override;
 
-			Weapon(const Weapon& other) : Item(other) {};
+			Weapon(const Weapon& other) : Item(other), damage(other.damage) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<Weapon>(*this);
 			}
 
-			Weapon(int, std::string, std::string, std::string, bool);
+			Weapon(int, std::string, std::string, std::string, bool, int);
 	};
 
-	class Food : public Item {
+	class Armor : public Item {
 		public:
-			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			int armor;
+
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) const override;
 			std::string getDescription() const override;
 
-			Food(const Food& other) : Item(other) {};
+			Armor(const Armor& other) : Item(other), armor(other.armor) {};
 			std::unique_ptr<Item> clone() const override {
-				return std::make_unique<Food>(*this);
+				return std::make_unique<Armor>(*this);
 			}
 
-			Food(int, std::string, std::string, std::string, bool);
+			Armor(int, std::string, std::string, std::string, bool, int);
 	};
 
 	class HealingItem : public Item {
 		public:
-			std::pair<std::string, bool> use(std::shared_ptr<Player>&) override;
+			int heal;
+
+			std::pair<std::string, bool> use(std::shared_ptr<Player>&) const override;
 			std::string getDescription() const override;
 
-			HealingItem(const HealingItem& other) : Item(other) {};
+			HealingItem(const HealingItem& other) : Item(other), heal(other.heal) {};
 			std::unique_ptr<Item> clone() const override {
 				return std::make_unique<HealingItem>(*this);
 			}
 
-			HealingItem(int, std::string, std::string, std::string, bool);
+			HealingItem(int, std::string, std::string, std::string, bool, int);
 	};
 
 	class Enemy {

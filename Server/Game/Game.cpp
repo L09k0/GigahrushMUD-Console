@@ -44,15 +44,17 @@ namespace Gigahrush {
 					ItemsConfig[i]["name"],
 					ItemsConfig[i]["description"],
 					ItemsConfig[i]["useDescription"],
-					ItemsConfig[i]["canSpawn"]);
+					ItemsConfig[i]["canSpawn"],
+					ItemsConfig[i]["damage"]);
 			}
 			else if (ItemsConfig[i]["type"] == 2) {
-				item = std::make_unique<Food>(
+				item = std::make_unique<Armor>(
 					ItemsConfig[i]["id"],
 					ItemsConfig[i]["name"],
 					ItemsConfig[i]["description"],
 					ItemsConfig[i]["useDescription"],
-					ItemsConfig[i]["canSpawn"]);
+					ItemsConfig[i]["canSpawn"],
+					ItemsConfig[i]["armor"]);
 			}
 			else if (ItemsConfig[i]["type"] == 3) {
 				item = std::make_unique<HealingItem>(
@@ -60,7 +62,8 @@ namespace Gigahrush {
 					ItemsConfig[i]["name"],
 					ItemsConfig[i]["description"],
 					ItemsConfig[i]["useDescription"],
-					ItemsConfig[i]["canSpawn"]);
+					ItemsConfig[i]["canSpawn"],
+					ItemsConfig[i]["heal"]);
 			}
 
 			config.items.push_back(std::move(item));

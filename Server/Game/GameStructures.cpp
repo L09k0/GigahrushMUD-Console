@@ -12,32 +12,32 @@ namespace Gigahrush {
 	Component::Component(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
 		Item(_ID,_name,_description,_useDescription,_canSpawn) {}
 
-	Weapon::Weapon(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
-		Item(_ID, _name, _description, _useDescription, _canSpawn) {}
+	Weapon::Weapon(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn, int _damage) :
+		Item(_ID, _name, _description, _useDescription, _canSpawn), damage(_damage) {}
 
-	Food::Food(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
-		Item(_ID, _name, _description, _useDescription, _canSpawn) {}
+	Armor::Armor(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn, int _armor) :
+		Item(_ID, _name, _description, _useDescription, _canSpawn), armor(_armor) {}
 
-	HealingItem::HealingItem(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn) :
-		Item(_ID, _name, _description, _useDescription, _canSpawn) {}
+	HealingItem::HealingItem(int _ID, std::string _name, std::string _description, std::string _useDescription, bool _canSpawn, int _heal) :
+		Item(_ID, _name, _description, _useDescription, _canSpawn), heal(_heal) {}
 
-	std::pair<std::string, bool> Item::use(std::shared_ptr<Player>& ply) {
+	std::pair<std::string, bool> Item::use(std::shared_ptr<Player>& ply) const {
 		return std::pair<std::string, bool>(std::string("Вы использовали предмет!"), true);
 	}
 
-	std::pair<std::string, bool> Component::use(std::shared_ptr<Player>& ply) {
+	std::pair<std::string, bool> Component::use(std::shared_ptr<Player>& ply) const {
 		return std::pair<std::string, bool>(std::string("Вы не можете использовать компонент!"), false);
 	}
 
-	std::pair<std::string, bool> Weapon::use(std::shared_ptr<Player>& ply) {
+	std::pair<std::string, bool> Weapon::use(std::shared_ptr<Player>& ply) const {
 		return std::pair<std::string, bool>(std::string("Вы экипировали оружие!"), true);
 	}
 
-	std::pair<std::string, bool> Food::use(std::shared_ptr<Player>& ply) {
-		return std::pair<std::string, bool>(std::string("Вы поели!"), true);
+	std::pair<std::string, bool> Armor::use(std::shared_ptr<Player>& ply) const {
+		return std::pair<std::string, bool>(std::string("Вы получили броню!"), true);
 	}
 
-	std::pair<std::string, bool> HealingItem::use(std::shared_ptr<Player>& ply) {
+	std::pair<std::string, bool> HealingItem::use(std::shared_ptr<Player>& ply) const {
 		return std::pair<std::string, bool>(std::string("Вы вылечились!"), true);
 	}
 
@@ -51,7 +51,7 @@ namespace Gigahrush {
 		return "";
 	}
 
-	std::string Food::getDescription() const {
+	std::string Armor::getDescription() const {
 		return "";
 	}
 
