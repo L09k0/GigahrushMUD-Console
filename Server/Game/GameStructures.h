@@ -136,9 +136,11 @@ namespace Gigahrush {
 			std::vector<std::string> replics; //Рандомные реплики определенного врага
 			unsigned short int health;
 			unsigned short int attack;
+			unsigned short int exp;
 			std::vector<std::unique_ptr<Item>> loot;
+			std::shared_ptr<Player> battleWith;
 
-			Enemy(int, std::string, std::string, std::vector<std::string>, unsigned short int, unsigned short int, std::vector<std::unique_ptr<Item>>&&);
+			Enemy(int, std::string, std::string, std::vector<std::string>, unsigned short int, unsigned short int, std::vector<std::unique_ptr<Item>>&&, unsigned short int);
 			~Enemy();
 
 			Enemy(const Enemy& other) :
@@ -147,7 +149,8 @@ namespace Gigahrush {
 				description(other.description),
 				replics(other.replics),
 				health(other.health),
-				attack(other.attack) {
+				attack(other.attack),
+				exp(other.exp) {
 				for (auto &it : other.loot) {
 					if (it) {
 						loot.push_back(it->clone());
@@ -163,6 +166,7 @@ namespace Gigahrush {
 					replics = other.replics;
 					health = other.health;
 					attack = other.attack;
+					exp = other.exp;
 
 					loot.clear();
 

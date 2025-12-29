@@ -98,7 +98,8 @@ namespace Gigahrush {
 				EnemiesConfig[i]["replics"],
 				EnemiesConfig[i]["health"],
 				EnemiesConfig[i]["attack"], 
-				std::move(loot)
+				std::move(loot),
+				EnemiesConfig[i]["exp"]
 			));
 			config.enemySpawnChances.push_back(SpawnChance(EnemiesConfig[i]["id"], EnemiesConfig[i]["spawnChance"]));
 		}
@@ -1239,104 +1240,144 @@ namespace Gigahrush {
 		return res;
 	}
 
-	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
-		std::lock_guard<std::mutex> lock(game_mutex);
+	std::string Game::Attack(std::shared_ptr<Player> ply, std::string weaponName) {
+		std::string res = "";
+		return res;
+	}
 
-		std::cout << "Запрос от игрока под ником " << ply->username << "\n";
+	std::string Game::Battle(std::shared_ptr<Player> ply, std::string enemyName) {
+		std::string res = "Этого врага нет в комнате";
 
-		std::vector<std::string> splitCommand;
-		std::stringstream ss(command);
-		std::string word;
-
-		while (ss >> word) {
-			splitCommand.push_back(word);
+		for (auto& it : ply->location->enemies) {
+			if (it->name == enemyName) {
+				if (it->battleWith != nullptr) {
+					res = "Игрок " + it->battleWith->username + " уже дерется с этим врагом.";
+				}
+				else {
+					ply->battleStatus.status = InBattle;
+					ply->battleStatus.enemy = it;
+					it->battleWith = ply;
+					res = "Вы вступили в битву с " + it->name;
+					break;
+				}
+			}
 		}
 
-		if (ply->battleStatus.status != InBattle) {
-			if (splitCommand[0] == "осмотреться") {
-				return Look(ply);
+		return res;
+	}
+
+	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
+		try {
+			std::lock_guard<std::mutex> lock(game_mutex);
+
+			std::cout << "Запрос от игрока под ником " << ply->username << "\n";
+
+			std::vector<std::string> splitCommand;
+			std::stringstream ss(command);
+			std::string word;
+
+			while (ss >> word) {
+				splitCommand.push_back(word);
 			}
-			else if (splitCommand[0] == "я") {
-				return Me(ply);
-			}
-			else if (splitCommand[0] == "идти") {
-				if (splitCommand.size() >= 2) {
-					if (splitCommand[1] == "на") {
-						if (splitCommand.size() >= 3) {
-							return Move(ply, splitCommand[2]);
+
+			if (ply->battleStatus.status != InBattle) {
+				if (splitCommand[0] == "осмотреться") {
+					return Look(ply);
+				}
+				else if (splitCommand[0] == "я") {
+					return Me(ply);
+				}
+				else if (splitCommand[0] == "идти") {
+					if (splitCommand.size() >= 2) {
+						if (splitCommand[1] == "на") {
+							if (splitCommand.size() >= 3) {
+								return Move(ply, splitCommand[2]);
+							}
+							else {
+								return "Неправильный синтаксис команды";
+							}
 						}
 						else {
 							return "Неправильный синтаксис команды";
 						}
 					}
 					else {
-						return "Неправильный синтаксис команды";
+						return "Неправильный синтаксис";
 					}
 				}
-				else {
-					return "Неправильный синтаксис";
+				else if (splitCommand[0] == "поднять") {
+					if (splitCommand.size() >= 2) {
+						return PickupItem(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
+				}
+				else if (splitCommand[0] == "выбросить") {
+					if (splitCommand.size() >= 2) {
+						return DropItem(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
+				}
+				else if (splitCommand[0] == "карта") {
+					return Map(ply);
+				}
+				else if (splitCommand[0] == "инвентарь") {
+					return Inventory(ply);
+				}
+				else if (splitCommand[0] == "вверх") {
+					return ChangeFloor(ply, 1);
+				}
+				else if (splitCommand[0] == "вниз") {
+					return ChangeFloor(ply, 0);
+				}
+				else if (splitCommand[0] == "создать") {
+					if (splitCommand.size() >= 2) {
+						return Craft(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
+				}
+				else if (splitCommand[0] == "рецепты") {
+					return EnableCrafts(ply);
+				}
+				else if (splitCommand[0] == "осмотреть") {
+					if (splitCommand.size() >= 2) {
+						return LookItem(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
+				}
+				else if (splitCommand[0] == "использовать") {
+					if (splitCommand.size() >= 2) {
+						return UseItem(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
+				}
+				else if (splitCommand[0] == "атаковать") {
+					if (splitCommand.size() >= 2) {
+						return Battle(ply, splitCommand[1]);
+					}
+					else {
+						return "Неправильный синтаксис";
+					}
 				}
 			}
-			else if (splitCommand[0] == "поднять") {
-				if (splitCommand.size() >= 2) {
-					return PickupItem(ply, splitCommand[1]);
-				}
-				else {
-					return "Неправильный синтаксис";
-				}
+			else {
+				return "Вы в бою";
 			}
-			else if (splitCommand[0] == "выбросить") {
-				if (splitCommand.size() >= 2) {
-					return DropItem(ply, splitCommand[1]);
-				}
-				else {
-					return "Неправильный синтаксис";
-				}
-			}
-			else if (splitCommand[0] == "карта") {
-				return Map(ply);
-			}
-			else if (splitCommand[0] == "инвентарь") {
-				return Inventory(ply);
-			}
-			else if (splitCommand[0] == "вверх") {
-				return ChangeFloor(ply, 1);
-			}
-			else if (splitCommand[0] == "вниз") {
-				return ChangeFloor(ply, 0);
-			}
-			else if (splitCommand[0] == "создать") {
-				if (splitCommand.size() >= 2) {
-					return Craft(ply, splitCommand[1]);
-				}
-				else {
-					return "Неправильный синтаксис";
-				}
-			}
-			else if (splitCommand[0] == "рецепты") {
-				return EnableCrafts(ply);
-			}
-			else if (splitCommand[0] == "осмотреть") {
-				if (splitCommand.size() >= 2) {
-					return LookItem(ply, splitCommand[1]);
-				}
-				else {
-					return "Неправильный синтаксис";
-				}
-			}
-			else if (splitCommand[0] == "использовать") {
-				if (splitCommand.size() >= 2) {
-					return UseItem(ply, splitCommand[1]);
-				}
-				else {
-					return "Неправильный синтаксис";
-				}
-			}
-		}
-		else {
-			return "Вы в бою";
-		}
 
-		return "Неизвестная команда";
+			return "Неизвестная команда";
+		}
+		catch (const std::exception e) {
+			std::cout << e.what();
+			return "Ошибка парсера. Попробуйте снова";
+		}
 	}
 }

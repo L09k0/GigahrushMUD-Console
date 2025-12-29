@@ -26,18 +26,18 @@ namespace Gigahrush {
 	}
 
 	std::pair<std::string, bool> Weapon::use(std::shared_ptr<Player>& ply) const {
-		return std::pair<std::string, bool>(std::string("Пока не реализовано!"), false);
+		return std::pair<std::string, bool>(std::string("Вы не можете использовать оружие. Вы можете только атаковать им врага во время битвы!"), false);
 	}
 
 	std::pair<std::string, bool> Armor::use(std::shared_ptr<Player>& ply) const {
 		ply->stats.armor += armor;
-		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВы добавили " + std::to_string(armor) + " единиц брони";
+		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВам добавлено " + std::to_string(armor) + " единиц брони.";
 		return std::pair<std::string, bool>(res, true);
 	}
 
 	std::pair<std::string, bool> HealingItem::use(std::shared_ptr<Player>& ply) const {
 		ply->stats.armor += heal;
-		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВы добавили " + std::to_string(heal) + " единиц здоровья";
+		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВам добавлено " + std::to_string(heal) + " единиц здоровья.";
 		return std::pair<std::string, bool>(res, true);
 	}
 
@@ -67,14 +67,15 @@ namespace Gigahrush {
 		return res;
 	}
 
-	Enemy::Enemy(int _ID, std::string _name, std::string _description, std::vector<std::string> _replics, unsigned short int _health, unsigned short int _attack, std::vector<std::unique_ptr<Item>>&& _loot) :
+	Enemy::Enemy(int _ID, std::string _name, std::string _description, std::vector<std::string> _replics, unsigned short int _health, unsigned short int _attack, std::vector<std::unique_ptr<Item>>&& _loot, unsigned short int _exp) :
 		ID(_ID),
 		name(_name),
 		description(_description),
 		replics(_replics),
 		health(_health),
 		attack(_attack),
-		loot(std::move(_loot)) {}
+		loot(std::move(_loot)),
+		exp(_exp) {}
 	Enemy::~Enemy() {}
 
 }
