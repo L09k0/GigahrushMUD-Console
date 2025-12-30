@@ -75,6 +75,8 @@ namespace Gigahrush {
 
 			void Info();
 
+			std::string CheckPlayerDeath(std::shared_ptr<Player>);
+
 			//Commands
 
 			std::string Map(std::shared_ptr<Player>);

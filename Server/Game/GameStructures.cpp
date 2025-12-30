@@ -68,7 +68,7 @@ namespace Gigahrush {
 		return res;
 	}
 
-	Enemy::Enemy(int _ID, std::string _name, std::string _description, std::vector<std::string> _replics, unsigned short int _health, unsigned short int _attack, std::vector<std::unique_ptr<Item>>&& _loot, unsigned short int _exp) :
+	Enemy::Enemy(int _ID, std::string _name, std::string _description, std::vector<std::string> _replics, short int _health, short int _attack, std::vector<std::unique_ptr<Item>>&& _loot, short int _exp) :
 		ID(_ID),
 		name(_name),
 		description(_description),

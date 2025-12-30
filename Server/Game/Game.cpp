@@ -804,7 +804,7 @@ namespace Gigahrush {
 		//Random spawning
 
 		ply->battleStatus.status = NotInBattle;
-		ply->stats = PlayerStats(100, 0, 0, configurator.config.maxInventorySize, false, 0, 0); //health,armor,level, max inv size, is weapon eq, weapon id, weaponskills
+		ply->stats = PlayerStats(100, 0, 1, configurator.config.maxInventorySize, false, 0, 0); //health,armor,level, max inv size, is weapon eq, weapon id, weaponskills
 
 		for (auto& it : gamedata.floors) {
 			if (it->level == 1) {
@@ -899,7 +899,7 @@ namespace Gigahrush {
 		int posY = ply->location->location.Y;
 
 		if (side == "север") {
-			if (posX < 0 || posX >= mask.size() || posY-1 < 0 || posY-1 >= mask[0].size()) {
+			if (posX < 0 || posX > mask.size() || posY-1 < 0 || posY-1 > mask[0].size()) {
 				return "Вы не можете пойти в эту сторону.";
 			}
 
@@ -918,7 +918,7 @@ namespace Gigahrush {
 			}
 		}
 		else if (side == "юг") {
-			if (posX < 0 || posX >= mask.size() || posY + 1 < 0 || posY + 1 >= mask[0].size()) {
+			if (posX < 0 || posX > mask.size() || posY + 1 < 0 || posY + 1 > mask[0].size()) {
 				return "Вы не можете пойти в эту сторону.";
 			}
 
@@ -937,7 +937,7 @@ namespace Gigahrush {
 			}
 		}
 		else if (side == "запад") {
-			if (posX - 1 < 0 || posX - 1 >= mask.size() || posY < 0 || posY >= mask[0].size()) {
+			if (posX - 1 < 0 || posX - 1 > mask.size() || posY < 0 || posY > mask[0].size()) {
 				return "Вы не можете пойти в эту сторону.";
 			}
 
@@ -956,7 +956,7 @@ namespace Gigahrush {
 			}
 		}
 		else if (side == "восток") {
-			if (posX + 1 < 0 || posX + 1 >= mask.size() || posY < 0 || posY >= mask[0].size()) {
+			if (posX + 1 < 0 || posX + 1 > mask.size() || posY < 0 || posY > mask[0].size()) {
 				return "Вы не можете пойти в эту сторону.";
 			}
 
@@ -1075,6 +1075,7 @@ namespace Gigahrush {
 	}
 
 	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
+		//ДОБАВИТЬ ПРОВЕРКУ НА МАКСИМАЛЬНЫЙ ИНВЕНТАРЬ
 		std::string res = "Этого предмета нет в комнате";
 
 		bool isFound = false;
@@ -1239,26 +1240,56 @@ namespace Gigahrush {
 
 		if (ply->battleStatus.status == InBattle) {
 			res += ply->battleStatus.enemy->Attack(ply);
+			res += CheckPlayerDeath(ply);
 		}
 
 		return res;
 	}
 
 	std::string Game::Attack(std::shared_ptr<Player> ply, std::string weaponName) {
+		//СДЕЛАТЬ АТАКУ СО СТАТАМИ.
 		std::string res = "Это не оружие, вы пропустили ход.";
-
+		bool isEnemyDead = false;
 		for (auto& it : ply->inventory) {
 			if (it->name == weaponName) {
 				Weapon* wep = dynamic_cast<Weapon*>(it.get());
 				if (wep != nullptr) {
-					ply->battleStatus.enemy->health -= wep->damage;
+					ply->battleStatus.enemy->health = std::clamp(ply->battleStatus.enemy->health - wep->damage, 0, 1000);
 					res = "Вы нанесли врагу " + ply->battleStatus.enemy->name + " " + std::to_string(wep->damage) + " урона (Осталось " + std::to_string(ply->battleStatus.enemy->health) + " здоровья).";
+					if (ply->battleStatus.enemy->health <= 0) {
+						ply->stats.level += ply->battleStatus.enemy->exp;
+						ply->stats.weaponSkill += 1;
+						ply->stats.inventoryMaxSize += 1;
+						isEnemyDead = true;
+						res += "\nВы победили " + ply->battleStatus.enemy->name + " и получили " + std::to_string(ply->battleStatus.enemy->exp) + " опыта.";
+
+						for (int j = 0; j < ply->location->enemyDescription.size(); j++) {
+							if (ply->location->enemyDescription[j].ID == ply->battleStatus.enemy->ID) {
+								ply->location->enemyDescription.erase(ply->location->enemyDescription.begin() + j);
+								break;
+							}
+						}
+
+						for (int i = 0; i < ply->location->enemies.size(); i++) {
+							if (ply->location->enemies[i]->battleWith->username == ply->username) {
+								ply->location->enemies.erase(ply->location->enemies.begin() + i);
+								break;
+							}
+						}
+
+						ply->battleStatus.enemy->battleWith = nullptr;
+						ply->battleStatus.status = NotInBattle;
+						break;
+					}
 					break;
 				}
 			}
 		}
 
-		res += ply->battleStatus.enemy->Attack(ply);
+		if (isEnemyDead == false) {
+			res += ply->battleStatus.enemy->Attack(ply);
+			res += CheckPlayerDeath(ply);
+		}
 
 		return res;
 	}
@@ -1279,6 +1310,38 @@ namespace Gigahrush {
 					break;
 				}
 			}
+		}
+
+		return res;
+	}
+
+	std::string Game::CheckPlayerDeath(std::shared_ptr<Player> ply) {
+		std::string res = "";
+
+		if (ply->stats.health <= 0) {
+			res = "\nВы умерли, ваши вещи остались в комнате [" + std::to_string(ply->location->location.X) + ", "
+				+ std::to_string(ply->location->location.Y) + "] на " + std::to_string(ply->location->location.F) + " этаже.";
+
+			ply->battleStatus.enemy->battleWith = nullptr;
+			ply->battleStatus.enemy = nullptr;
+			ply->battleStatus.status = NotInBattle;
+
+			//stats reset
+
+			ply->stats.health = 100;
+			ply->stats.armor = 0;
+			ply->stats.level = 1;
+			ply->stats.weaponSkill = 0;
+			ply->stats.inventoryMaxSize = configurator.config.maxInventorySize;
+
+			for (auto& it : gamedata.floors) {
+				if (it->level == 1) {
+					ply->floor = it;
+					ply->location = it->rooms[rand() % it->rooms.size()];
+				}
+			}
+
+			//!!!Добавить тут дроп инвентаря!!!
 		}
 
 		return res;
@@ -1409,6 +1472,11 @@ namespace Gigahrush {
 				}
 				else if (splitCommand[0] == "я") {
 					return Me(ply);
+				}
+				else if (splitCommand[0] == "пропустить") {
+					std::string res = ply->battleStatus.enemy->Attack(ply);
+					res += CheckPlayerDeath(ply);
+					return res;
 				}
 				return "В бою вы можете использовать только команды атаки, использования и инвентаря.";
 			}

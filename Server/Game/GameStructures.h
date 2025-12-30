@@ -9,9 +9,9 @@ namespace Gigahrush {
 	// Config Structures
 
 	struct MapSize {
-		unsigned short int FloorCount;
-		unsigned short int X;
-		unsigned short int Y;
+		short int FloorCount;
+		short int X;
+		short int Y;
 	};
 
 	struct SpawnChance {
@@ -134,13 +134,13 @@ namespace Gigahrush {
 			std::string description;
 			//Location location;
 			std::vector<std::string> replics; //Рандомные реплики определенного врага
-			unsigned short int health;
-			unsigned short int attack;
-			unsigned short int exp;
+			short int health;
+			short int attack;
+			short int exp;
 			std::vector<std::unique_ptr<Item>> loot;
 			std::shared_ptr<Player> battleWith;
 
-			Enemy(int, std::string, std::string, std::vector<std::string>, unsigned short int, unsigned short int, std::vector<std::unique_ptr<Item>>&&, unsigned short int);
+			Enemy(int, std::string, std::string, std::vector<std::string>, short int, short int, std::vector<std::unique_ptr<Item>>&&, short int);
 			~Enemy();
 
 			Enemy(const Enemy& other) :
@@ -303,14 +303,14 @@ namespace Gigahrush {
 	};
 
 	struct Floor {
-		unsigned short int level;
+		int level;
 		std::vector<std::shared_ptr<Room>> rooms;
 		std::vector<std::vector<int>> floorMask;
 		Location exitCoordinates;
 		bool canGoUp = true;
 		bool canGoDown = true;
 
-		Floor(unsigned short int _level, std::vector<std::shared_ptr<Room>> _rooms,
+		Floor(int _level, std::vector<std::shared_ptr<Room>> _rooms,
 			std::vector<std::vector<int>> _floorMask, Location _exitCoordinates, bool _canGoUp, bool _canGoDown) :
 			level(_level),
 			rooms(_rooms),
