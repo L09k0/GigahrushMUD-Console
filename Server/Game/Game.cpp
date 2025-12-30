@@ -1075,7 +1075,6 @@ namespace Gigahrush {
 	}
 
 	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
-		//ДОБАВИТЬ ПРОВЕРКУ НА МАКСИМАЛЬНЫЙ ИНВЕНТАРЬ
 		std::string res = "Этого предмета нет в комнате";
 
 		bool isFound = false;
@@ -1083,12 +1082,18 @@ namespace Gigahrush {
 			if (ply->location->items[i]->name == item) {
 				for (int j = 0; j < ply->location->itemDescription.size(); j++) {
 					if (ply->location->itemDescription[j].ID == ply->location->items[i]->ID) {
-						ply->inventory.push_back(ply->location->items[i]->clone());
-						res = "Вы подняли " + ply->location->items[i]->name + "";
-						ply->location->items.erase(ply->location->items.begin() + i);
-						ply->location->itemDescription.erase(ply->location->itemDescription.begin() + j);
-						isFound = true;
-						break;
+						if (ply->inventory.size() < ply->stats.inventoryMaxSize) {
+							ply->inventory.push_back(ply->location->items[i]->clone());
+							res = "Вы подняли " + ply->location->items[i]->name + "";
+							ply->location->items.erase(ply->location->items.begin() + i);
+							ply->location->itemDescription.erase(ply->location->itemDescription.begin() + j);
+							isFound = true;
+							break;
+						}
+						else {
+							res = "Ваш инвентарь полон";
+							break;
+						}
 					}
 				}
 			}
@@ -1247,15 +1252,14 @@ namespace Gigahrush {
 	}
 
 	std::string Game::Attack(std::shared_ptr<Player> ply, std::string weaponName) {
-		//СДЕЛАТЬ АТАКУ СО СТАТАМИ.
 		std::string res = "Это не оружие, вы пропустили ход.";
 		bool isEnemyDead = false;
 		for (auto& it : ply->inventory) {
 			if (it->name == weaponName) {
 				Weapon* wep = dynamic_cast<Weapon*>(it.get());
 				if (wep != nullptr) {
-					ply->battleStatus.enemy->health = std::clamp(ply->battleStatus.enemy->health - wep->damage, 0, 1000);
-					res = "Вы нанесли врагу " + ply->battleStatus.enemy->name + " " + std::to_string(wep->damage) + " урона (Осталось " + std::to_string(ply->battleStatus.enemy->health) + " здоровья).";
+					ply->battleStatus.enemy->health = std::clamp(ply->battleStatus.enemy->health - (wep->damage + ply->stats.weaponSkill), 0, 1000);
+					res = "Вы нанесли врагу " + ply->battleStatus.enemy->name + " " + std::to_string(wep->damage) + " + " + std::to_string(ply->stats.weaponSkill) + " урона(Осталось " + std::to_string(ply->battleStatus.enemy->health) + " здоровья).";
 					if (ply->battleStatus.enemy->health <= 0) {
 						ply->stats.level += ply->battleStatus.enemy->exp;
 						ply->stats.weaponSkill += 1;
@@ -1326,7 +1330,22 @@ namespace Gigahrush {
 			ply->battleStatus.enemy = nullptr;
 			ply->battleStatus.status = NotInBattle;
 
+			//inventory drop
+
+			for (int i = ply->inventory.size() - 1; i >= 0; i--) {
+				ply->location->items.push_back(ply->inventory[i]->clone());
+				std::string phrase = "";
+				for (auto& it : configurator.config.roomDescs) {
+					if (ply->location->ID == it.ID) {
+						phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(ply->inventory[i]->name));
+					}
+				}
+				ply->location->itemDescription.push_back(RoomDescElement(ply->inventory[i]->ID, phrase));
+				ply->inventory.erase(ply->inventory.begin() + i);
+			}
+
 			//stats reset
+
 
 			ply->stats.health = 100;
 			ply->stats.armor = 0;
@@ -1340,8 +1359,6 @@ namespace Gigahrush {
 					ply->location = it->rooms[rand() % it->rooms.size()];
 				}
 			}
-
-			//!!!Добавить тут дроп инвентаря!!!
 		}
 
 		return res;
