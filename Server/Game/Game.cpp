@@ -320,7 +320,7 @@ namespace Gigahrush {
 		randDir = (rand() % 4) + 1;
 
 		if (X >= 0 && X < mask.size() && Y >= 0 && Y < mask[0].size()) {
-			if (mask[X][Y] == 0) { return true; }
+			if (mask[Y][X] == 0) { return true; }
 		}
 
 		int tempX = X;
@@ -328,10 +328,10 @@ namespace Gigahrush {
 
 		switch (randDir) {
 			case 1:
-				tempY += 1;
+				tempY -= 1;
 				break;
 			case 2:
-				tempY -= 1;
+				tempY += 1;
 				break;
 			case 3:
 				tempX -= 1;
@@ -341,7 +341,7 @@ namespace Gigahrush {
 				break;
 		}
 
-		if (tempX >= 0 && tempX <= mask.size() && tempY >= 0 && tempY <= mask[0].size()) {
+		if (tempX >= 0 && tempX < mask.size() && tempY >= 0 && tempY < mask[0].size()) {
 			X = tempX;
 			Y = tempY;
 
@@ -358,8 +358,8 @@ namespace Gigahrush {
 			return;
 		}
 
-		if (mask[currentX][currentY] == 1) { return; }
-		mask[currentX][currentY] = 1;
+		if (mask[currentY][currentX] == 1) { return; }
+		mask[currentY][currentX] = 1;
 
 		if (rand() % 100 < 50) {
 			GenerateBranchMask(mask, currentX, currentY, remainingSteps, (rand() % 4) + 1);
@@ -430,8 +430,8 @@ namespace Gigahrush {
 			return;
 		}
 
-		if (mask[currentX][currentY] == 1) { return; }
-		mask[currentX][currentY] = 1;
+		if (mask[currentY][currentX] == 1) { return; }
+		mask[currentY][currentX] = 1;
 
 		if (rand() % 100 < 50) {
 			GenerateBranchMask(mask, currentX, currentY, remainingSteps, (rand() % 4) + 1);
@@ -716,7 +716,7 @@ namespace Gigahrush {
 			flr->level = i;
 			//std::vector<std::vector<int>> mask(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y,0));
 
-			flr->floorMask.resize(configurator.config.mapSize.X, std::vector<int>(configurator.config.mapSize.Y, 0));
+			flr->floorMask.resize(configurator.config.mapSize.Y, std::vector<int>(configurator.config.mapSize.X, 0));
 
 			int randStartX = configurator.config.mapSize.X/2;
 			int randStartY = configurator.config.mapSize.Y/2;
@@ -733,7 +733,7 @@ namespace Gigahrush {
 
 			for (int y = 0; y < flr->floorMask.size(); y++) {
 				for (int x = 0; x < flr->floorMask[0].size(); x++) {
-					if (flr->floorMask[x][y] == 1) {
+					if (flr->floorMask[y][x] == 1) {
 						bool isex;
 						Location loc(x, y, i);
 
@@ -852,7 +852,7 @@ namespace Gigahrush {
 
 		for (int y = 0; y < ply->floor->floorMask.size(); y++) {
 			for (int x = 0; x < ply->floor->floorMask[0].size(); x++) {
-				if (ply->floor->floorMask[x][y] == 0) {
+				if (ply->floor->floorMask[y][x] == 0) {
 					res += " ";
 				}
 				else {
@@ -887,18 +887,15 @@ namespace Gigahrush {
 		}
 		res += "Вы можете пойти на ";
 
-		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y - 1] == 1) {
-			res += "север ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X][ply->location->location.Y + 1] == 1) {
-			res += "юг ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X - 1][ply->location->location.Y] == 1) {
-			res += "запад ";
-		}
-		if (ply->floor->floorMask[ply->location->location.X + 1][ply->location->location.Y] == 1) {
-			res += "восток ";
-		}
+		std::vector<std::vector<int>>& mask = ply->floor->floorMask;
+		int plyX = ply->location->location.X;
+		int plyY = ply->location->location.Y;
+
+		if ((plyY - 1 >= 0 && plyY - 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY-1][plyX] == 1) { res += "север "; }
+		if ((plyY + 1 >= 0 && plyY + 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY+1][plyX] == 1) { res += "юг "; }
+		if ((plyY >= 0 && plyY < mask.size() && plyX - 1 >= 0 && plyX - 1 < mask[0].size()) && mask[plyY][plyX-1] == 1) { res += "запад "; }
+		if ((plyY >= 0 && plyY < mask.size() && plyX + 1 >= 0 && plyX + 1 < mask[0].size()) && mask[plyY][plyX+1] == 1) { res += "восток "; }
+
 		if (ply->location->isExit == true) {
 			if (ply->floor->canGoUp == true) {
 				res += "\nИз этой локации вы можете подняться на этаж выше";
@@ -913,96 +910,30 @@ namespace Gigahrush {
 
 	std::string Game::Move(std::shared_ptr<Gigahrush::Player> ply, std::string side) {
 		std::string res = "";
+		std::vector<std::vector<int>> mask = ply->floor->floorMask;
 
-		try {
-			std::vector<std::vector<int>> mask = ply->floor->floorMask;
-			int posX = ply->location->location.X;
-			int posY = ply->location->location.Y;
-			if (side == "север") {
-				if (posX < 0 || posX > mask[0].size() || posY - 1 < 0 || posY - 1 > mask.size()) {
-					return "Вы не можете пойти в эту сторону.";
-				}
+		int posX = ply->location->location.X;
+		int posY = ply->location->location.Y;
 
-				if (mask[posX][posY - 1] == 1) {
-					for (auto& it : ply->floor->rooms) {
-						if (it->location.X == posX && it->location.Y == posY - 1) {
-							ply->location = it;
-							res = "Вы переместились\n";
-							res += Look(ply);
-							break;
-						}
-					}
-				}
-				else {
-					res = "Вы не можете пойти в эту сторону.";
-				}
-			}
-			else if (side == "юг") {
-				if (posX < 0 || posX > mask[0].size() || posY + 1 < 0 || posY + 1 > mask.size()) {
-					return "Вы не можете пойти в эту сторону.";
-				}
+		if (side == "север") {posY -= 1;}
+		else if (side == "юг") {posY += 1;}
+		else if (side == "запад") {posX -= 1;}
+		else if (side == "восток") {posX += 1;}
+		else { return "Неизвестная сторона"; }
 
-				if (mask[posX][posY + 1] == 1) {
-					for (auto& it : ply->floor->rooms) {
-						if (it->location.X == posX && it->location.Y == posY + 1) {
-							ply->location = it;
-							res = "Вы переместились\n";
-							res += Look(ply);
-							break;
-						}
-					}
-				}
-				else {
-					res = "Вы не можете пойти в эту сторону.";
-				}
-			}
-			else if (side == "запад") {
-				if (posX - 1 < 0 || posX - 1 > mask[0].size() || posY < 0 || posY > mask.size()) {
-					return "Вы не можете пойти в эту сторону.";
-				}
+		if (posY < 0 || posY >= mask.size() || posX < 0 || posX >= mask[0].size()) {return "Вы не можете пойти в эту сторону";}
+		if (mask[posY][posX] != 1) { return "Вы не можете пойти в эту сторону"; }
 
-				if (mask[posX - 1][posY] == 1) {
-					for (auto& it : ply->floor->rooms) {
-						if (it->location.X == posX - 1 && it->location.Y == posY) {
-							ply->location = it;
-							res = "Вы переместились\n";
-							res += Look(ply);
-							break;
-						}
-					}
-				}
-				else {
-					res = "Вы не можете пойти в эту сторону.";
-				}
-			}
-			else if (side == "восток") {
-				if (posX + 1 < 0 || posX + 1 > mask[0].size() || posY < 0 || posY > mask.size()) {
-					return "Вы не можете пойти в эту сторону.";
-				}
-
-				if (mask[posX + 1][posY] == 1) {
-					for (auto& it : ply->floor->rooms) {
-						if (it->location.X == posX + 1 && it->location.Y == posY) {
-							ply->location = it;
-							res = "Вы переместились\n";
-							res += Look(ply);
-							break;
-						}
-					}
-				}
-				else {
-					res = "Вы не можете пойти в эту сторону.";
-				}
-			}
-			else {
-				res = "Неизвестная сторона.";
+		for (auto& it : ply->floor->rooms) {
+			if (it->location.X == posX && it->location.Y == posY) {
+				ply->location = it;
+				res = "Вы переместились\n";
+				res += Look(ply);
+				return res;
 			}
 		}
-		catch (const std::exception ec) {
-			std::cout << ec.what();
-		}
 
-		return res;
+		return "Вы не можете пойти в эту сторону";
 	}
 
 	std::string Game::Craft(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
@@ -1110,6 +1041,10 @@ namespace Gigahrush {
 
 	std::string Game::PickupItem(std::shared_ptr<Gigahrush::Player> ply, std::string item) {
 		std::string res = "Этого предмета нет в комнате";
+
+		if (ply->location->enemies.size() != 0) {
+			return "Вы не можете подбирать предметы пока в комнате есть враги!";
+		}
 
 		bool isFound = false;
 		for (int i = 0; i < ply->location->items.size(); i++) {
