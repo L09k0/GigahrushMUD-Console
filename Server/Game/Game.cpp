@@ -303,6 +303,7 @@ namespace Gigahrush {
 			LoadCrafts();
 			config.configLoaded = true;
 			std::cout << "Config loaded!\n";
+
 			return true;
 		}
 		catch (std::exception& e) {
@@ -315,6 +316,9 @@ namespace Gigahrush {
 		static Game g;
 		return g;
 	}
+
+	Game::Game(): isGenerated(false) {}
+	Game::~Game() = default;
 
 	bool Game::changeDir(std::vector<std::vector<int>>& mask, int& X, int& Y, int& randDir) {
 		randDir = (rand() % 4) + 1;
@@ -727,10 +731,6 @@ namespace Gigahrush {
 
 			GenerateFloorMask(flr->floorMask, randStartX, randStartY, remainingSteps, (rand()%4)+1);
 
-			//flr->floorMask = mask;
-
-			//Print mask
-
 			for (int y = 0; y < flr->floorMask.size(); y++) {
 				for (int x = 0; x < flr->floorMask[0].size(); x++) {
 					if (flr->floorMask[y][x] == 1) {
@@ -741,13 +741,10 @@ namespace Gigahrush {
 						else { isex = false; }
 
 						flr->rooms.push_back(GenerateRoom(loc,isex));
-						//std::cout << "#";
 					}
 					else {
-						//std::cout << " ";
 					}
 				}
-				//std::cout << "\n";
 			}
 			gamedata.floors.push_back(flr);
 		}
@@ -852,20 +849,12 @@ namespace Gigahrush {
 
 		for (int y = 0; y < ply->floor->floorMask.size(); y++) {
 			for (int x = 0; x < ply->floor->floorMask[0].size(); x++) {
-				if (ply->floor->floorMask[y][x] == 0) {
-					res += " ";
-				}
+				if (ply->floor->floorMask[y][x] == 0) {res += " ";}
 				else {
-					if (x == ply->location->location.X && y == ply->location->location.Y) {
-						res += "@";
-					}
+					if (x == ply->location->location.X && y == ply->location->location.Y) { res += "@"; }
 					else {
-						if (x == ply->floor->exitCoordinates.X && y == ply->floor->exitCoordinates.Y){
-							res += "0";
-						}
-						else {
-							res += "#";
-						}
+						if (x == ply->floor->exitCoordinates.X && y == ply->floor->exitCoordinates.Y){res += "0";}
+						else {res += "#";}
 					}
 				}
 			}
@@ -1086,7 +1075,7 @@ namespace Gigahrush {
 		return res;
 	}
 
-	std::string Game::ChangeFloor(std::shared_ptr<Player> ply, int dir) { 
+	std::string Game::ChangeFloor(std::shared_ptr<Player> ply, std::string dir) { 
 		//1 - up 0 - down
 		std::string res = "";
 		std::shared_ptr<Floor> flrToChange = nullptr;
@@ -1095,8 +1084,7 @@ namespace Gigahrush {
 		bool canChange = false;
 
 		if (ply->location->isExit == true) {
-			switch (dir) {
-			case 0:
+			if (dir == "вниз")
 				if (ply->floor->canGoDown == true) {
 					for (auto& it : gamedata.floors) {
 						if (it->level == ply->floor->level-1) {
@@ -1114,8 +1102,7 @@ namespace Gigahrush {
 				else {
 					res = "Вы не можете спуститься ниже";
 				}
-				break;
-			case 1:
+			else if (dir == "вверх") {
 				if (ply->floor->canGoUp == true) {
 					for (auto& it : gamedata.floors) {
 						if (it->level == ply->floor->level + 1) {
@@ -1133,7 +1120,6 @@ namespace Gigahrush {
 				else {
 					res = "Вы не можете подняться ниже";
 				}
-				break;
 			}
 		}
 		else {
@@ -1387,7 +1373,45 @@ namespace Gigahrush {
 		return res;
 	}
 
+	void Game::LoadConfig() {
+		configurator.LoadConfig();
+		//add commands
+
+		CommandHandler& commandhandler = CommandHandler::Instance();
+
+		commandhandler.add("карта", [this](std::shared_ptr<Player> ply) {return this->Map(ply); }, 0, false);
+		commandhandler.add("я", [this](std::shared_ptr<Player> ply) {return this->Me(ply); }, 0, true);
+		commandhandler.add("осмотреться", [this](std::shared_ptr<Player> ply) {return this->Look(ply);}, 0, false);
+
+		commandhandler.add("идти", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Move(ply,arg); }, 1, false);
+		commandhandler.add("создать", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Craft(ply, arg); }, 1, false);
+		commandhandler.add("выбросить", [this](std::shared_ptr<Player> ply, std::string arg) {return this->DropItem(ply, arg); }, 1, false);
+
+		commandhandler.add("поднять", [this](std::shared_ptr<Player> ply, std::string arg) {return this->PickupItem(ply, arg); }, 1, false);
+		commandhandler.add("инвентарь", [this](std::shared_ptr<Player> ply) {return this->Inventory(ply); }, 0, true);
+		commandhandler.add("вверх", [this](std::shared_ptr<Player> ply, std::string arg) {return this->ChangeFloor(ply, arg); }, 1, false);
+		commandhandler.add("вниз", [this](std::shared_ptr<Player> ply, std::string arg) {return this->ChangeFloor(ply, arg); }, 1, false);
+
+		commandhandler.add("осмотреть", [this](std::shared_ptr<Player> ply, std::string arg) {return this->LookItem(ply, arg); }, 1, false);
+		commandhandler.add("рецепты", [this](std::shared_ptr<Player> ply) {return this->EnableCrafts(ply); }, 0, false);
+		commandhandler.add("использовать", [this](std::shared_ptr<Player> ply, std::string arg) {return this->UseItem(ply, arg); }, 1, true);
+
+		commandhandler.add("атаковать", [this](std::shared_ptr<Player> ply) {return this->Attack(ply); }, 0, true);
+		commandhandler.add("битва", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Battle(ply, arg); }, 1, false);
+		commandhandler.add("экипировать", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Equip(ply, arg); }, 1, true);
+	}
+
 	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
+		std::lock_guard<std::mutex> lock(game_mutex);
+		CommandHandler& commandhandler = CommandHandler::Instance();
+
+		std::cout << "Запрос от игрока под ником " << ply->username << "\n";
+		bool inb = false;
+		if (ply->battleStatus.status == InBattle) { inb = true; }
+		std::string res = "";
+		res = commandhandler.handle(ply, command, inb);
+		return res;
+		/*
 		try {
 			std::lock_guard<std::mutex> lock(game_mutex);
 
@@ -1536,6 +1560,6 @@ namespace Gigahrush {
 		catch (const std::exception e) {
 			std::cout << e.what();
 			return "Ошибка парсера. Попробуйте снова";
-		}
+		}*/
 	}
 }

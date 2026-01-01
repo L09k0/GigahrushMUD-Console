@@ -1,4 +1,5 @@
-﻿#include <optional>
+﻿#pragma once
+#include <optional>
 #include "asio.hpp"
 
 class Server {

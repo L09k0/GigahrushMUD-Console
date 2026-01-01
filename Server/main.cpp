@@ -69,7 +69,7 @@ void Terminal() {
 
 		if (lowCom == "loadconf") {
 			gameMutex.lock();
-			bool x = Game.configurator.LoadConfig();
+			Game.LoadConfig();
 			gameMutex.unlock();
 		}
 		else if (lowCom == "gen") {

@@ -1,6 +1,8 @@
-﻿#include <string>
+﻿#pragma once
+#include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace Gigahrush {
 	enum Status { InBattle, NotInBattle };

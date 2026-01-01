@@ -1,3 +1,4 @@
+п»ї#pragma once
 #include "GameStructures.h"
 #include "JsonParser.h"
 #include <cstdlib>
@@ -7,8 +8,10 @@
 #include <mutex>
 #include <sstream>
 #include <algorithm>
+#include "CommandHandler.h"
 
 namespace Gigahrush {
+
 	struct Config {
 		MapSize mapSize;
 
@@ -46,8 +49,8 @@ namespace Gigahrush {
 
 	class Game {
 		private:
-			Game() {};
-			~Game() {};
+			Game();
+			~Game();
 
 			Game(Game& const) = delete;
 			Game& operator= (Game const&) = delete;
@@ -60,7 +63,6 @@ namespace Gigahrush {
 			bool changeDir(std::vector<std::vector<int>>&, int&, int&, int&);
 			void GenerateBranchMask(std::vector<std::vector<int>>&, int, int, int, int);
 			void GenerateFloorMask(std::vector<std::vector<int>>&, int, int, int, int);
-
 			std::mutex game_mutex;
 
 		public:
@@ -69,9 +71,10 @@ namespace Gigahrush {
 			bool isGenerated;
 
 			static Game& Instance();
-			
+
 			bool GenerateGame();
 			void ResetGame();
+			void LoadConfig();
 
 			void Info();
 
@@ -82,17 +85,21 @@ namespace Gigahrush {
 			std::string Map(std::shared_ptr<Player>);
 			std::string Me(std::shared_ptr<Player>);
 			std::string Look(std::shared_ptr<Player>);
+
 			std::string Move(std::shared_ptr<Player>, std::string);
 			std::string Craft(std::shared_ptr<Player>, std::string);
 			std::string DropItem(std::shared_ptr<Player>, std::string);
+
 			std::string PickupItem(std::shared_ptr<Player>, std::string);
 			std::string Inventory(std::shared_ptr<Player>);
-			std::string ChangeFloor(std::shared_ptr<Player>, int);
+			std::string ChangeFloor(std::shared_ptr<Player>, std::string);
+
 			std::string LookItem(std::shared_ptr<Player>, std::string);
 			std::string EnableCrafts(std::shared_ptr<Player>);
 			std::string UseItem(std::shared_ptr<Player>, std::string);
-			std::string Attack(std::shared_ptr<Player>); // игрок, оружие
-			std::string Battle(std::shared_ptr<Player>, std::string); // игрок, враг
+
+			std::string Attack(std::shared_ptr<Player>); // РёРіСЂРѕРє, РѕСЂСѓР¶РёРµ
+			std::string Battle(std::shared_ptr<Player>, std::string); // РёРіСЂРѕРє, РІСЂР°Рі
 			std::string Equip(std::shared_ptr<Player>, std::string);
 
 			//EndCommands

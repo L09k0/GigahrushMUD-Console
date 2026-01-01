@@ -5,6 +5,7 @@
 	Game/Game.cpp
 	Game/JsonParser.cpp
 	Game/GameStructures.cpp
+	Game/CommandHandler.cpp
 )
 
 set(HEADERS 
@@ -13,6 +14,7 @@ set(HEADERS
 	Game/Game.h
 	Game/JsonParser.h
 	Game/GameStructures.h
+	Game/CommandHandler.h
 )
 
 add_executable (GigahrushServer ${SOURCES} ${HEADERS})
