@@ -1401,6 +1401,13 @@ namespace Gigahrush {
 		commandhandler.add("атаковать", [this](std::shared_ptr<Player> ply) {return this->Attack(ply); }, 0, true);
 		commandhandler.add("битва", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Battle(ply, arg); }, 1, false);
 		commandhandler.add("экипировать", [this](std::shared_ptr<Player> ply, std::string arg) {return this->Equip(ply, arg); }, 1, true);
+		commandhandler.add("пропустить", [this](std::shared_ptr<Player> ply, std::string arg) {
+			if (ply->battleStatus.status != InBattle) { return std::string("Вы не в битве!"); }
+			std::string res = "Вы пропустили ход";
+			res += ply->battleStatus.enemy->Attack(ply);
+			res += this->CheckPlayerDeath(ply);
+			return res;
+			}, 0, true);
 	}
 
 	std::string Game::ParseCommand(std::shared_ptr<Player> ply, std::string& command) {
