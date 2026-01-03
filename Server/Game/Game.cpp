@@ -113,17 +113,34 @@ namespace Gigahrush {
 		nlohmann::json RoomsConfig = js.readFile("Config/Rooms.json");
 
 		for (int i = 0; i < RoomsConfig.size(); i++) {
-			config.rooms.push_back(std::make_unique<Room>(
-				RoomsConfig[i]["id"],
-				RoomsConfig[i]["name"],
-				std::string{RoomsConfig[i]["description"]},
-				std::vector<RoomDescElement>{},
-				std::vector<RoomDescElement>{},
-				std::vector<std::unique_ptr<Item>>{},
-				std::vector<std::shared_ptr<Enemy>>{},
-				RoomsConfig[i]["isExit"],
-				Location()
-			));
+			if (RoomsConfig[i]["type"] == 1) {
+				config.rooms.push_back(std::make_unique<Room>(
+					RoomsConfig[i]["id"],
+					RoomsConfig[i]["name"],
+					std::string{ RoomsConfig[i]["description"] },
+					std::vector<RoomDescElement>{},
+					std::vector<RoomDescElement>{},
+					std::vector<std::unique_ptr<Item>>{},
+					std::vector<std::shared_ptr<Enemy>>{},
+					RoomsConfig[i]["isExit"],
+					Location()
+				));
+			}
+			else if (RoomsConfig[i]["type"] == 2) {
+				config.rooms.push_back(std::make_unique<ExitRoom>(
+					RoomsConfig[i]["id"],
+					RoomsConfig[i]["name"],
+					std::string{ RoomsConfig[i]["description"] },
+					std::vector<RoomDescElement>{},
+					std::vector<RoomDescElement>{},
+					std::vector<std::unique_ptr<Item>>{},
+					std::vector<std::shared_ptr<Enemy>>{},
+					RoomsConfig[i]["isExit"],
+					Location(),
+					false
+				));
+
+			}
 
 			config.roomDescs.push_back(RoomDesc(
 				RoomsConfig[i]["id"],
@@ -690,6 +707,10 @@ namespace Gigahrush {
 		room->isExit = isExit;
 		room->location = loc;
 
+		ExitRoom* rmm = dynamic_cast<ExitRoom*>(room.get());
+
+		if (rmm != nullptr) { rmm->isBroken = false; }
+
 		GenerateItemsAndEnemies(room);
 		//PrintRoomInfo(room);
 		return room;
@@ -886,11 +907,18 @@ namespace Gigahrush {
 		if ((plyY >= 0 && plyY < mask.size() && plyX + 1 >= 0 && plyX + 1 < mask[0].size()) && mask[plyY][plyX+1] == 1) { res += "восток "; }
 
 		if (ply->location->isExit == true) {
-			if (ply->floor->canGoUp == true) {
-				res += "\nИз этой локации вы можете подняться на этаж выше";
+			ExitRoom* rm = dynamic_cast<ExitRoom*>(ply->location.get());
+
+			if (rm != nullptr && rm->isBroken == false) {
+				if (ply->floor->canGoUp == true) {
+					res += "\nИз этой локации вы можете подняться на этаж выше";
+				}
+				if (ply->floor->canGoDown == true) {
+					res += "\nИз этой локации вы можете опуститься на этаж ниже";
+				}
 			}
-			if (ply->floor->canGoDown == true) {
-				res += "\nИз этой локации вы можете опуститься на этаж ниже";
+			else {
+				res += "\nНа локации сломан лифт, вы не можете перейти на другой этаж пока не почините лифт";
 			}
 		}
 

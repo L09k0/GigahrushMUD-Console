@@ -301,8 +301,35 @@ namespace Gigahrush {
 			return *this;
 		}
 
-		std::shared_ptr<Room> clone() {
+		virtual std::shared_ptr<Room> clone() {
 			return std::make_shared<Room>(*this);
+		}
+	};
+
+	//Типы комнат 1 - Обычная комната, просто room, тип 2 - выход (может ломаться)
+
+	struct ExitRoom : public Room {
+		bool isBroken;
+		ExitRoom(int _ID, std::string _name, std::string _description,
+			std::vector<RoomDescElement> _itemDescription,
+			std::vector<RoomDescElement> _enemyDescription,
+			std::vector<std::unique_ptr<Item>>&& _items,
+			std::vector<std::shared_ptr<Enemy>> _enemies, bool _isExit, Location _location, bool _isBroken) :
+			Room(_ID, _name, _description, _itemDescription, _enemyDescription, std::move(_items), _enemies, _isExit, _location), 
+			isBroken(_isBroken) {}
+
+		ExitRoom(const ExitRoom& other) : Room(other), isBroken(other.isBroken) {}
+
+		ExitRoom& operator= (const ExitRoom& other) {
+			if (this != &other) {
+				Room::operator=(other); 
+				isBroken = other.isBroken;
+			}
+			return *this;
+		}
+
+		std::shared_ptr<Room> clone() override {
+			return std::make_shared<ExitRoom>(*this);
 		}
 	};
 
