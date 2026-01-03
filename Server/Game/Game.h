@@ -20,6 +20,7 @@ namespace Gigahrush {
 		std::vector<Craft> crafts;
 
 		std::vector<SpawnChance> itemSpawnChances;
+		std::vector<RoomUniqueItems> roomUniqueItems;
 
 		std::vector<SpawnChance> roomSpawnChances;
 		std::vector<SpawnChance> exitRoomSpawnChances;

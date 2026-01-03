@@ -154,6 +154,8 @@ namespace Gigahrush {
 			else {
 				config.roomSpawnChances.push_back(SpawnChance(RoomsConfig[i]["id"], RoomsConfig[i]["spawnChance"]));
 			}
+
+			config.roomUniqueItems.push_back(RoomUniqueItems(RoomsConfig[i]["id"], RoomsConfig[i]["unItems"]));
 		}
 		std::cout << config.rooms.size() <<  " rooms loaded" << std::endl;
 	}
@@ -561,8 +563,16 @@ namespace Gigahrush {
 		//Gen items
 		std::vector<RoomDescElement> itemDescription;
 		std::vector<std::unique_ptr<Item>> items;
+		std::vector<int> uniqItems;
 
 		int itemCount = (rand() % configurator.config.maxRoomItems) + 1;
+
+		for (auto& d : configurator.config.roomUniqueItems) {
+			if (d.ID == rm->ID) {
+				uniqItems = d.itemsID;
+				break;
+			}
+		}
 
 		for (int i = 0; i < itemCount; i++) {
 			int itemId = 0;
@@ -571,7 +581,9 @@ namespace Gigahrush {
 			int Weight = 0;
 
 			for (auto &ch : configurator.config.itemSpawnChances) {
-				Weight += (ch.chance * 100);
+				if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
+					Weight += (ch.chance * 100);
+				}
 			}
 
 			int choose = rand() % Weight;
@@ -579,10 +591,12 @@ namespace Gigahrush {
 			Weight = 0;
 
 			for (auto &ch : configurator.config.itemSpawnChances) {
-				Weight += (ch.chance * 100);
-				if (Weight >= choose) {
-					itemId = ch.ID;
-					break;
+				if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
+					Weight += (ch.chance * 100);
+					if (Weight >= choose) {
+						itemId = ch.ID;
+						break;
+					}
 				}
 			}
 

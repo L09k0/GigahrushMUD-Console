@@ -32,6 +32,11 @@ namespace Gigahrush {
 		std::vector<int> craft;
 	};
 
+	struct RoomUniqueItems {
+		int ID;
+		std::vector<int> itemsID;
+	};
+
 	// Game Structures
 
 	struct Player;
