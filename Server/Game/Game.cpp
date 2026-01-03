@@ -1503,7 +1503,17 @@ namespace Gigahrush {
 		for (auto [id, count] : recipe) {
 			if (inv[id] < count) {
 				canRepair = false;
-				return "Недостаточно предметов для починки";
+				std::string f = "Недостаточно предметов для починки\nВам нужны:";
+				size_t c = 1;
+				for (auto [id, count] : recipe) {
+					for (auto& it : configurator.config.items) {
+						if (it->ID == id) {
+							f += "\n" + std::to_string(c) + ". " + it->name + " (" + std::to_string(count) + " штуки)";
+							++c;
+						}
+					}
+				}
+;				return f;
 			}
 		}
 
