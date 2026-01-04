@@ -949,39 +949,52 @@ namespace Gigahrush {
 	}
 
 	std::string Game::Look(std::shared_ptr<Gigahrush::Player> ply) {
-		std::string res = ply->location->name + ": Этаж " + std::to_string(ply->floor->level) + "\n" +
-			"Координаты: [" + std::to_string(ply->location->location.X) + ", " + std::to_string(ply->location->location.Y) + "]\n"+
-			ply->location->description + "\n";
+		std::string res = "\n" + ply->location->name + ": Этаж " + std::to_string(ply->floor->level) + "\n" +
+			"Координаты: [" + std::to_string(ply->location->location.X) + ", " + std::to_string(ply->location->location.Y) + "]\n\n===ОПИСАНИЕ===\n\n"+
+			ply->location->description;
+
+		size_t c = 1;
+
+		if (ply->location->itemDescription.size() != 0) { res += "\n\n===ПРЕДМЕТЫ===\n"; }
+
 		for (auto& it : ply->location->itemDescription) {
-			res += it.desc + "\n";
+			res += "\n" + std::to_string(c) + ". " + it.desc;
+			++c;
 		}
+
+		if (ply->location->enemyDescription.size() != 0) { res += "\n\n===ВРАГИ===\n"; }
+		c = 1;
+
 		for (auto& it : ply->location->enemyDescription) {
-			res += it.desc + "\n";
+			res += "\n" + std::to_string(c) + ". " + it.desc;
+			++c;
 		}
-		res += "Вы можете пойти на ";
+		std::string temp = "";
 
 		std::vector<std::vector<int>>& mask = ply->floor->floorMask;
 		int plyX = ply->location->location.X;
 		int plyY = ply->location->location.Y;
 
-		if ((plyY - 1 >= 0 && plyY - 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY-1][plyX] == 1) { res += "север "; }
-		if ((plyY + 1 >= 0 && plyY + 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY+1][plyX] == 1) { res += "юг "; }
-		if ((plyY >= 0 && plyY < mask.size() && plyX - 1 >= 0 && plyX - 1 < mask[0].size()) && mask[plyY][plyX-1] == 1) { res += "запад "; }
-		if ((plyY >= 0 && plyY < mask.size() && plyX + 1 >= 0 && plyX + 1 < mask[0].size()) && mask[plyY][plyX+1] == 1) { res += "восток "; }
+		if ((plyY - 1 >= 0 && plyY - 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY-1][plyX] == 1) { temp += "север "; }
+		if ((plyY + 1 >= 0 && plyY + 1 < mask.size() && plyX >= 0 && plyX < mask[0].size()) && mask[plyY+1][plyX] == 1) { temp += "юг "; }
+		if ((plyY >= 0 && plyY < mask.size() && plyX - 1 >= 0 && plyX - 1 < mask[0].size()) && mask[plyY][plyX-1] == 1) { temp += "запад "; }
+		if ((plyY >= 0 && plyY < mask.size() && plyX + 1 >= 0 && plyX + 1 < mask[0].size()) && mask[plyY][plyX+1] == 1) { temp += "восток "; }
+
+		if(temp != "") { res += "\n\nВы можете пойти на " + temp; }
 
 		if (ply->location->isExit == true) {
 			ExitRoom* rm = dynamic_cast<ExitRoom*>(ply->location.get());
 
 			if (rm != nullptr && rm->isBroken == false) {
 				if (ply->floor->canGoUp == true) {
-					res += "\nИз этой локации вы можете подняться на этаж выше";
+					res += "\n\nИз этой локации вы можете подняться на этаж выше";
 				}
 				if (ply->floor->canGoDown == true) {
-					res += "\nИз этой локации вы можете опуститься на этаж ниже";
+					res += "\n\nИз этой локации вы можете опуститься на этаж ниже";
 				}
 			}
 			else {
-				res += "\nНа локации сломан лифт, вы не можете перейти на другой этаж пока не почините лифт";
+				res += "\n\nНа локации сломан лифт, вы не можете перейти на другой этаж пока не почините лифт";
 			}
 		}
 

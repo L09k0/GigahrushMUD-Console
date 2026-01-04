@@ -87,26 +87,23 @@ namespace Gigahrush {
 			//Commands
 
 			std::string Map(std::shared_ptr<Player>);
-			std::string Me(std::shared_ptr<Player>);
-			std::string Look(std::shared_ptr<Player>);
-
+			std::string Me(std::shared_ptr<Player>); //REDESIGN
+			std::string Look(std::shared_ptr<Player>); //REDESIGN
 			std::string Move(std::shared_ptr<Player>, std::string);
-			std::string Craft(std::shared_ptr<Player>, std::string);
-			std::string DropItem(std::shared_ptr<Player>, std::string);
+			std::string Craft(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string DropItem(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string PickupItem(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string Inventory(std::shared_ptr<Player>); //REDESIGN
+			std::string ChangeFloor(std::shared_ptr<Player>, int); //REDESIGN
+			std::string LookItem(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string EnableCrafts(std::shared_ptr<Player>); //REDESIGN
+			std::string UseItem(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string Attack(std::shared_ptr<Player>); // игрок, оружие //REDESIGN
+			std::string Battle(std::shared_ptr<Player>, std::string); // игрок, враг //REDESIGN
+			std::string Equip(std::shared_ptr<Player>, std::string); //REDESIGN
+			std::string RepairExit(std::shared_ptr<Player>); //REDESIGN
+			std::string CurrentPlayers(std::shared_ptr<Player>); //REDESIGN
 
-			std::string PickupItem(std::shared_ptr<Player>, std::string);
-			std::string Inventory(std::shared_ptr<Player>);
-			std::string ChangeFloor(std::shared_ptr<Player>, int);
-
-			std::string LookItem(std::shared_ptr<Player>, std::string);
-			std::string EnableCrafts(std::shared_ptr<Player>);
-			std::string UseItem(std::shared_ptr<Player>, std::string);
-
-			std::string Attack(std::shared_ptr<Player>); // игрок, оружие
-			std::string Battle(std::shared_ptr<Player>, std::string); // игрок, враг
-			std::string Equip(std::shared_ptr<Player>, std::string);
-			std::string RepairExit(std::shared_ptr<Player>);
-			std::string CurrentPlayers(std::shared_ptr<Player>);
 			//EndCommands
 
 			std::shared_ptr<Gigahrush::Player> SpawnPlayer(std::string&);
