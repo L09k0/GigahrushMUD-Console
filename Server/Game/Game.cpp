@@ -575,59 +575,61 @@ namespace Gigahrush {
 			}
 		}
 
-		for (int i = 0; i < itemCount; i++) {
-			int itemId = 0;
+		if (uniqItems.size() != 0) {
+			for (int i = 0; i < itemCount; i++) {
+				int itemId = 0;
 
-			//Random algoritm
-			int Weight = 0;
+				//Random algoritm
+				int Weight = 0;
 
-			for (auto &ch : configurator.config.itemSpawnChances) {
-				if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
-					Weight += (ch.chance * 100);
+				for (auto& ch : configurator.config.itemSpawnChances) {
+					if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
+						Weight += (ch.chance * 100);
+					}
 				}
-			}
 
-			int choose = rand() % Weight;
+				int choose = rand() % Weight;
 
-			Weight = 0;
+				Weight = 0;
 
-			for (auto &ch : configurator.config.itemSpawnChances) {
-				if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
-					Weight += (ch.chance * 100);
-					if (Weight >= choose) {
-						itemId = ch.ID;
+				for (auto& ch : configurator.config.itemSpawnChances) {
+					if (std::find(uniqItems.begin(), uniqItems.end(), ch.ID) != uniqItems.end()) {
+						Weight += (ch.chance * 100);
+						if (Weight >= choose) {
+							itemId = ch.ID;
+							break;
+						}
+					}
+				}
+
+				std::string itName = "";
+				//End random
+				for (auto& it : configurator.config.items) {
+					if (it->ID == itemId) {
+						itName = it->name;
+						items.push_back(it->clone());
 						break;
 					}
 				}
-			}
 
-			std::string itName = "";
-			//End random
-			for (auto &it : configurator.config.items) {
-				if (it->ID == itemId) {
-					itName = it->name;
-					items.push_back(it->clone());
-					break;
-				}
-			}
+				std::string phrase = "";
 
-			std::string phrase = "";
+				for (auto& it : configurator.config.roomDescs) {
+					if (rm->ID == it.ID) {
+						if (it.itemDescs.size() == 1) {
+							phrase = std::vformat(std::string_view(it.itemDescs[0]), std::make_format_args(itName));
+						}
+						else {
+							phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(itName));
+						}
 
-			for (auto &it : configurator.config.roomDescs) {
-				if (rm->ID == it.ID) {
-					if (it.itemDescs.size() == 1) {
-						phrase = std::vformat(std::string_view(it.itemDescs[0]), std::make_format_args(itName));
+						//phrase = it.itemDescs[rand() % it.itemDescs.size()];
+						//sprintf(&phrase[0], itName.c_str());
 					}
-					else {
-						phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(itName));
-					}
-
-					//phrase = it.itemDescs[rand() % it.itemDescs.size()];
-					//sprintf(&phrase[0], itName.c_str());
 				}
-			}
 
-			itemDescription.push_back(RoomDescElement(itemId, phrase));
+				itemDescription.push_back(RoomDescElement(itemId, phrase));
+			}
 		}
 
 		//Gen enemy
