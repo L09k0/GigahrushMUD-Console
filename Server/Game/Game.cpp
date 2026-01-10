@@ -896,7 +896,7 @@ namespace Gigahrush {
 		//Random spawning
 
 		ply->battleStatus.status = NotInBattle;
-		ply->stats = PlayerStats(100, 0, 1, configurator.config.maxInventorySize, false, 0, 0); //health,armor,level, max inv size, is weapon eq, weapon id, weaponskills
+		ply->stats = PlayerStats(100, 0, 1, 100, 0, configurator.config.maxInventorySize, false, 0, 0); //health,armor,level,toup,cur, max inv size, is weapon eq, weapon id, weaponskills
 
 		for (auto& it : gamedata.floors) {
 			if (it->level == 1) {
@@ -912,6 +912,8 @@ namespace Gigahrush {
 	std::string Game::Me(std::shared_ptr<Gigahrush::Player> ply) {
 		std::string res = "Имя: " + ply->username + "\n" +
 			"Уровень: " + std::to_string(ply->stats.level) + "\n" +
+			"Текущий опыт: " + std::to_string(ply->stats.currentExp) + "\n" +
+			"Опыта до следующего уровня: " + std::to_string(ply->stats.expTolevelUp) + "\n" +
 			"Вместимость инвентаря: " + std::to_string(ply->stats.inventoryMaxSize) + "\n" +
 			"Здоровье: " + std::to_string(ply->stats.health) + "\n" +
 			"Броня: " + std::to_string(ply->stats.armor) + "\n" +
@@ -921,6 +923,7 @@ namespace Gigahrush {
 			for (auto& it : ply->inventory) {
 				if (it->ID == ply->stats.weaponEqID) {
 					res += "\nТекущее оружие: " + it->name;
+					break;
 				}
 			}
 		}
@@ -1263,7 +1266,7 @@ namespace Gigahrush {
 
 		for (auto& it : ply->location->enemies) {
 			if (it->name == item) {
-				res = it->name + ": " + it->description;
+				res = it->name + ": " + it->description + "\nЗдоровье: " + std::to_string(it->health) + "\nУрон: " + std::to_string(it->attack);
 				break;
 			}
 		}
@@ -1330,6 +1333,25 @@ namespace Gigahrush {
 		return res;
 	}
 
+	std::string Game::CheckLevelUp(std::shared_ptr<Player> ply) {
+		std::string res = "";
+
+		if (ply->stats.currentExp < ply->stats.expTolevelUp) { return ""; }
+
+		ply->stats.currentExp -= ply->stats.expTolevelUp;
+		ply->stats.expTolevelUp *= 1.1;
+		ply->stats.level += 1;
+
+		ply->stats.weaponSkill += 1;
+		ply->stats.inventoryMaxSize += 1;
+
+		res = "\n\nВы получили новый уровень:  " + std::to_string(ply->stats.level) + "\n" +
+			"Опыта до следующего уровня: " + std::to_string(ply->stats.expTolevelUp) + "\n" +
+			"Текущий опыт: " + std::to_string(ply->stats.currentExp) + "\n";
+
+		return res;
+	}
+
 	std::string Game::Attack(std::shared_ptr<Player> ply) {
 		if (ply->battleStatus.status != InBattle) { return "Вы не в битве"; }
 
@@ -1352,12 +1374,13 @@ namespace Gigahrush {
 					ply->battleStatus.enemy->health = std::clamp(ply->battleStatus.enemy->health - (wep->damage + ply->stats.weaponSkill), 0, 1000);
 					res = "Вы нанесли врагу " + ply->battleStatus.enemy->name + " " + std::to_string(wep->damage) + " + " + std::to_string(ply->stats.weaponSkill) + " урона(Осталось " + std::to_string(ply->battleStatus.enemy->health) + " здоровья).";
 					if (ply->battleStatus.enemy->health <= 0) {
-						ply->stats.level += ply->battleStatus.enemy->exp;
-						ply->stats.weaponSkill += ply->battleStatus.enemy->exp/2;
-						ply->stats.inventoryMaxSize += 1;
+						ply->stats.currentExp += ply->battleStatus.enemy->exp;
+
 						isEnemyDead = true;
 						res += "\nВы победили " + ply->battleStatus.enemy->name + " и получили " + std::to_string(ply->battleStatus.enemy->exp/2) + " опыта.";
 						int randItemFromEnemyID = 0;
+
+						res += CheckLevelUp(ply);
 
 						if (ply->battleStatus.enemy->loot.size() != 1) {
 							randItemFromEnemyID = ply->battleStatus.enemy->loot[rand() % (ply->battleStatus.enemy->loot.size() - 1)]->ID;

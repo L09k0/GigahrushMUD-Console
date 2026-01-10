@@ -86,9 +86,11 @@ namespace Gigahrush {
 
 			//Commands
 
+			std::string CheckLevelUp(std::shared_ptr<Player>);
+
 			std::string Map(std::shared_ptr<Player>);
 			std::string Me(std::shared_ptr<Player>); //REDESIGN
-			std::string Look(std::shared_ptr<Player>); //REDESIGN
+			std::string Look(std::shared_ptr<Player>);
 			std::string Move(std::shared_ptr<Player>, std::string);
 			std::string Craft(std::shared_ptr<Player>, std::string); //REDESIGN
 			std::string DropItem(std::shared_ptr<Player>, std::string); //REDESIGN

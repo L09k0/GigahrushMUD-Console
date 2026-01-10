@@ -200,6 +200,10 @@ namespace Gigahrush {
 		int armor;
 
 		int level;
+
+		int expTolevelUp;
+		int currentExp;
+
 		int inventoryMaxSize;
 
 		bool wepEq;
