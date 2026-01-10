@@ -1446,6 +1446,12 @@ namespace Gigahrush {
 					ply->battleStatus.enemy = it;
 					it->battleWith = ply;
 					res = "Вы вступили в битву с " + it->name;
+
+					if (rand() % 100 <= 50) {
+						res += ply->battleStatus.enemy->Attack(ply);
+						res += CheckPlayerDeath(ply);
+					}
+
 					break;
 				}
 			}
@@ -1493,9 +1499,9 @@ namespace Gigahrush {
 
 			ply->stats.health = 100;
 			ply->stats.armor = 0;
-			ply->stats.level = 1;
-			ply->stats.weaponSkill = 0;
-			ply->stats.inventoryMaxSize = configurator.config.maxInventorySize;
+			ply->stats.level /= 2;
+			ply->stats.weaponSkill /= 2;
+			ply->stats.inventoryMaxSize /= 2; //configurator.config.maxInventorySize;
 
 			for (auto& it : gamedata.floors) {
 				if (it->level == 1) {
