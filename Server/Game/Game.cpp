@@ -577,6 +577,9 @@ namespace Gigahrush {
 
 		if (uniqItems.size() != 0) {
 			for (int i = 0; i < itemCount; i++) {
+
+				if (rand() % 100 <= 30) { continue; }
+
 				int itemId = 0;
 
 				//Random algoritm
