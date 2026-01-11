@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <optional>
 #include "asio.hpp"
+#include "Session.h"
 
 class Server {
 	private:
@@ -8,7 +9,16 @@ class Server {
 		asio::ip::tcp::acceptor acceptor;
 		std::optional<asio::ip::tcp::socket> socket;
 
+		std::vector<std::shared_ptr<Session>> allSessions;
+
+		asio::steady_timer timer1;
+
 	public:
 		Server(asio::io_context& io_context, std::uint16_t port);
+
+		//Timers
+		void timer1Exec(const asio::error_code&);
+
 		void async_accept();
+		void startTimer1();
 };
