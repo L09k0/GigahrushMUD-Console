@@ -13,6 +13,7 @@
 #include "ftxui/component/screen_interactive.hpp"
 
 std::atomic<bool> running = true;
+bool first = true;
 
 std::string ConvertCP1251ToUTF8(const std::string& str)
 {
@@ -48,6 +49,12 @@ std::string ConvertUTF8ToCP1251(const std::string& str)
 	return result;
 }
 
+std::string ServerAnswer(std::string request) {
+	std::string res = "Типо ответ от сервера";
+
+	return res;
+}
+
 int main()
 {
 	//FTXUI
@@ -55,20 +62,12 @@ int main()
 
 	ftxui::Component vvod1 = ftxui::Input(&test);
 
-	ftxui::Component inputPole = ftxui::Container::Vertical({
-			vvod1
-		});
+	std::vector<std::string> testLog;
 
-	auto renderer = ftxui::Renderer(inputPole, [&] {
-		return ftxui::vbox({
-			ftxui::text("MUD") | ftxui::bold,
-			ftxui::hbox(ftxui::text("Команда"), vvod1->Render()),
-			ftxui::text("Ты написал: " + test) }) | ftxui::border;
-		});
+	auto vvod1Handler = ftxui::CatchEvent(vvod1, [&](ftxui::Event event) {
 
-	auto obrabotka = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
-
-		if (event == ftxui::Event::Character('\0')) {
+		if (event == ftxui::Event::Return) {
+			testLog.push_back(ServerAnswer(test));
 			test = "";
 			return true;
 		}
@@ -77,11 +76,32 @@ int main()
 
 		});
 
+	ftxui::Component inputPole = ftxui::Container::Vertical({
+			vvod1Handler
+		});
+
+	auto renderer = ftxui::Renderer(inputPole, [&] {
+		//Logs
+		
+		std::vector<ftxui::Element> logItems;
+		ftxui::Element logWindow = ftxui::vbox();
+
+		for (const auto& it : testLog) {
+			logItems.push_back(ftxui::text(it));
+		}
+
+		logWindow = ftxui::vbox(logItems);
+
+		return ftxui::vbox({
+			ftxui::text("MUD") | ftxui::bold,
+			logWindow | ftxui::border,
+			ftxui::hbox(ftxui::text("Команда"), vvod1->Render())}) | ftxui::border;
+		});
+
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
-	screen.Loop(obrabotka);
+	screen.Loop(renderer);
 	//EFTXUI
 
-	/*
 	#ifdef _WIN32
 		SetConsoleCP(1251); 
 		SetConsoleOutputCP(1251);
@@ -159,5 +179,4 @@ int main()
 		}
 	}
 	return 0;
-	*/
 }
