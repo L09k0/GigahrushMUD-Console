@@ -7,6 +7,11 @@
 #include "asio.hpp"
 #include "Client.h"
 
+#include "ftxui/dom/elements.hpp"
+#include "ftxui/screen/screen.hpp"
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/screen_interactive.hpp"
+
 std::atomic<bool> running = true;
 
 std::string ConvertCP1251ToUTF8(const std::string& str)
@@ -45,6 +50,38 @@ std::string ConvertUTF8ToCP1251(const std::string& str)
 
 int main()
 {
+	//FTXUI
+	std::string test;
+
+	ftxui::Component vvod1 = ftxui::Input(&test);
+
+	ftxui::Component inputPole = ftxui::Container::Vertical({
+			vvod1
+		});
+
+	auto renderer = ftxui::Renderer(inputPole, [&] {
+		return ftxui::vbox({
+			ftxui::text("MUD") | ftxui::bold,
+			ftxui::hbox(ftxui::text("Команда"), vvod1->Render()),
+			ftxui::text("Ты написал: " + test) }) | ftxui::border;
+		});
+
+	auto obrabotka = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
+
+		if (event == ftxui::Event::Character('\0')) {
+			test = "";
+			return true;
+		}
+
+		return false;
+
+		});
+
+	auto screen = ftxui::ScreenInteractive::TerminalOutput();
+	screen.Loop(obrabotka);
+	//EFTXUI
+
+	/*
 	#ifdef _WIN32
 		SetConsoleCP(1251); 
 		SetConsoleOutputCP(1251);
@@ -122,4 +159,5 @@ int main()
 		}
 	}
 	return 0;
+	*/
 }
