@@ -50,6 +50,9 @@ std::string ConvertUTF8ToCP1251(const std::string& str)
 enum class State {CONNECTED, DISCONNECTED};
 
 std::atomic<bool> running = true;
+std::atomic<bool> bgRunning = false;
+
+
 State state = State::DISCONNECTED;
 
 std::vector<std::string> logs;
@@ -65,6 +68,10 @@ Client client(io_context, ip, port);
 
 std::string lastCommand;
 
+std::thread bg;
+
+void UpdateMsgThread();
+
 void Connect() {
 	if (state == State::CONNECTED) { return; }
 
@@ -74,6 +81,9 @@ void Connect() {
 
 		client.Connect();
 		state = State::CONNECTED;
+		bgRunning = true;
+		bg = std::thread(UpdateMsgThread);
+
 		logs.push_back(client.Send(nick));
 	}
 	catch (const std::exception& ec) {
@@ -94,10 +104,19 @@ std::string ServerAnswer(std::string request) {
 	return res;
 }
 
-int main()
-{
+void UpdateMsgThread() {
+
+	while (bgRunning) {
+		serverMessages.push_back("Test");
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+
+	return;
+}
+
+void MainThread() {
 	//FTXUI
-	
+
 	//First time box elements
 
 	ftxui::Component ipInput = ftxui::Input(&ip);
@@ -106,27 +125,27 @@ int main()
 
 	ftxui::Component ipInputHandler = ftxui::CatchEvent(ipInput, [&](ftxui::Event event) {
 		if (event == ftxui::Event::Return) { return true; }
-		return false; 
-	});
+		return false;
+		});
 
 	ftxui::Component portInputHandler = ftxui::CatchEvent(portInput, [&](ftxui::Event event) {
 		if (event == ftxui::Event::Return) { return true; }
 		return false;
-	});
+		});
 
 	ftxui::Component nickInputHandler = ftxui::CatchEvent(nickInput, [&](ftxui::Event event) {
 		if (event == ftxui::Event::Return) { Connect();  return true; }
 		return false;
-	});
+		});
 
-	ftxui::Component connectButton = ftxui::Button("Подключиться",Connect);
+	ftxui::Component connectButton = ftxui::Button("Подключиться", Connect);
 
 	ftxui::Component firstField = ftxui::Container::Vertical({
 		ipInputHandler,
 		portInputHandler,
 		nickInputHandler,
 		connectButton
-	});
+		});
 
 	//Main box elements
 	std::string userCommand;
@@ -138,17 +157,15 @@ int main()
 
 		for (const auto& log : logs) {
 			elements.push_back(
-				ftxui::paragraph(log)
+				ftxui::paragraph(log) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 100)
 			);
 
 			elements.push_back(ftxui::text(""));
 		}
 
-		return ftxui::vbox(elements) |
-			ftxui::frame |
-			ftxui::vscroll_indicator |
-			ftxui::flex | ftxui::focusPositionRelative(0.0f, 1.0f);
-	});
+		return ftxui::vbox(elements) | ftxui::frame |
+			ftxui::vscroll_indicator | ftxui::focusPositionRelative(0.0f, 1.0f);
+		});
 
 	ftxui::Component serverWindow = ftxui::Renderer([&] {
 		std::vector<ftxui::Element> elements;
@@ -157,26 +174,20 @@ int main()
 			elements.push_back(
 				ftxui::paragraph(log)
 			);
-
-			elements.push_back(ftxui::text(""));
 		}
 
-		return ftxui::vbox(elements) |
-			ftxui::frame |
-			ftxui::vscroll_indicator |
-			ftxui::flex | ftxui::focusPositionRelative(0.0f, 1.0f);
-	});
+		return ftxui::vbox(elements) | ftxui::frame |
+			ftxui::vscroll_indicator | ftxui::focusPositionRelative(0.0f, 1.0f);
+		});
 
 	ftxui::Component mapWindow = ftxui::Renderer([&] {
 		std::vector<ftxui::Element> elements;
 
 		elements.push_back(ftxui::paragraph(map));
 
-		return ftxui::vbox(elements) |
-			ftxui::frame |
-			ftxui::vscroll_indicator |
-			ftxui::flex | ftxui::focusPositionRelative(0.0f, 1.0f);
-	});
+		return ftxui::vbox(elements) | ftxui::frame |
+			ftxui::vscroll_indicator | ftxui::focusPositionRelative(0.0f, 1.0f);
+		});
 
 	ftxui::Component mainInputHandler = ftxui::CatchEvent(commandInput, [&](ftxui::Event event) {
 		if (event == ftxui::Event::Return) {
@@ -187,7 +198,7 @@ int main()
 			return true;
 		}
 
-		if(event == ftxui::Event::ArrowUp) {
+		if (event == ftxui::Event::ArrowUp) {
 			userCommand = lastCommand;
 			return true;
 		}
@@ -202,7 +213,7 @@ int main()
 			serverWindow,
 			mapWindow
 		});
-	
+
 	ftxui::Component renderer = ftxui::Renderer(mainBox, [&] {
 		//Logs
 
@@ -210,42 +221,45 @@ int main()
 			ftxui::text("IP: "), ipInput->Render(), ftxui::separator(),
 			ftxui::text("Порт: "), portInput->Render(), ftxui::separator(),
 			ftxui::text("Имя игрока: "), nickInput->Render(), ftxui::separator(),
-			connectButton->Render() | ftxui::center 
-		});
+			connectButton->Render() | ftxui::center
+			});
 
 		auto centered_content = ftxui::vbox({
 			ftxui::filler() | ftxui::flex,
 			login_form,
 			ftxui::filler() | ftxui::flex
-		}) | ftxui::flex;
+			}) | ftxui::flex;
 
 		if (state == State::DISCONNECTED) {
-			return ftxui::window(ftxui::text("Вход") | ftxui::center | ftxui::bold, centered_content) 
-				| ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 35) 
+			return ftxui::window(ftxui::text("Вход") | ftxui::center | ftxui::bold, centered_content)
+				| ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 35)
 				| ftxui::size(ftxui::HEIGHT, ftxui::LESS_THAN, 14)
 				| ftxui::center
 				| ftxui::color(ftxui::Color::Green);
 		}
 
 		auto game_box = ftxui::vbox({
-			logWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::border | ftxui::size(ftxui::HEIGHT, ftxui::LESS_THAN, 50) | ftxui::flex,
-			ftxui::hbox(ftxui::text("Команда: "), commandInput->Render()) });
+			logWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::border | ftxui::flex,
+			ftxui::hbox(ftxui::text("Команда: "), commandInput->Render()) }) | ftxui::flex;
 		auto game_window = ftxui::window(ftxui::text("Гигахрущ"), game_box) | ftxui::color(ftxui::Color::Green);
 
-		auto server_box = ftxui::vbox({serverWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::flex});
-		auto server_window = ftxui::window(ftxui::text("Оповещения сервера"), server_box) | ftxui::flex | ftxui::color(ftxui::Color::Green);
+		auto server_box = ftxui::vbox({ serverWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::flex }) | ftxui::flex;
+		auto server_window = ftxui::window(ftxui::text("Оповещения сервера"), server_box) | ftxui::color(ftxui::Color::Green) | ftxui::flex;
 
-		auto map_box = ftxui::vbox({ mapWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::flex });
-		auto map_window = ftxui::window(ftxui::text("Карта"), map_box) | ftxui::flex | ftxui::color(ftxui::Color::Green);
+		auto map_box = ftxui::vbox({ mapWindow->Render() | ftxui::vscroll_indicator | ftxui::frame | ftxui::flex }) | ftxui::flex;
+		auto map_window = ftxui::window(ftxui::text("Карта"), map_box) | ftxui::color(ftxui::Color::Green) | ftxui::flex;
 
-		auto mainBox = ftxui::hbox({
-			game_window | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 100),
-			ftxui::vbox({
-				server_window,
-				map_window
-			}) | ftxui::flex
-		}) | ftxui::flex;
-		return mainBox;
+		auto right_column = ftxui::vbox({
+			server_window,
+			map_window
+		}) | ftxui::flex;  
+
+		auto main_layout = ftxui::hbox({
+			game_window | ftxui::flex_grow,
+			right_column | ftxui::flex_grow  
+		}) | ftxui::flex; 
+
+		return main_layout;
 
 		//return ftxui::window(ftxui::text("Гигахрущ"), game_box) | ftxui::flex | ftxui::color(ftxui::Color::Green);
 		});
@@ -254,6 +268,21 @@ int main()
 	screen.Loop(renderer);
 
 	//EFTXUI
+
+	return;
+}
+
+int main()
+{
+	std::thread mt(MainThread);
+
+	if (mt.joinable()) {
+		mt.join();
+	}
+
+	if (bg.joinable()) {
+		bg.join();
+	}
 
 	/*
 	#ifdef _WIN32
