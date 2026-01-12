@@ -52,6 +52,7 @@ enum class State {CONNECTED, DISCONNECTED};
 std::atomic<bool> running = true;
 std::atomic<bool> bgRunning = false;
 
+std::mutex mtx;
 
 State state = State::DISCONNECTED;
 
@@ -70,9 +71,13 @@ std::string lastCommand;
 
 std::thread bg;
 
+auto screen = ftxui::ScreenInteractive::TerminalOutput();
+
 void UpdateMsgThread();
 
 void Connect() {
+	std::lock_guard<std::mutex> lock(mtx);
+
 	if (state == State::CONNECTED) { return; }
 
 	try {
@@ -83,34 +88,38 @@ void Connect() {
 		state = State::CONNECTED;
 		bgRunning = true;
 		bg = std::thread(UpdateMsgThread);
-
-		logs.push_back(client.Send(nick));
+		client.Send(nick);
 	}
 	catch (const std::exception& ec) {
 		state = State::DISCONNECTED;
 	}
 }
 
-std::string ServerAnswer(std::string request) {
+void SendServ(std::string request) {
+	std::lock_guard<std::mutex> lock(mtx);
+
 	std::string res = "Типо ответ от сервера";
 
 	try {
-		res = client.Send(request);
+		client.Send(request);
 	}
 	catch (const std::exception& e) {
-		return "Ошибка соединения с севером";
+		return;
 	}
-
-	return res;
 }
 
 void UpdateMsgThread() {
-
 	while (bgRunning) {
-		serverMessages.push_back("Test");
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	}
+		asio::error_code ec;
+		client.recv_buffer_server.resize(2048);
+		size_t br = client.socket.read_some(asio::buffer(client.recv_buffer_server), ec);
 
+		if (ec) { continue; }
+
+		client.recv_buffer_server.resize(br);
+		logs.push_back(client.recv_buffer_server);
+		screen.PostEvent(ftxui::Event::Special("refresh"));
+	}
 	return;
 }
 
@@ -192,7 +201,7 @@ void MainThread() {
 	ftxui::Component mainInputHandler = ftxui::CatchEvent(commandInput, [&](ftxui::Event event) {
 		if (event == ftxui::Event::Return) {
 			if (userCommand == "") { return true; }
-			logs.push_back(ServerAnswer(userCommand));
+			SendServ(userCommand);
 			lastCommand = userCommand;
 			userCommand = "";
 			return true;
@@ -263,8 +272,6 @@ void MainThread() {
 
 		//return ftxui::window(ftxui::text("Гигахрущ"), game_box) | ftxui::flex | ftxui::color(ftxui::Color::Green);
 		});
-
-	auto screen = ftxui::ScreenInteractive::TerminalOutput();
 	screen.Loop(renderer);
 
 	//EFTXUI
