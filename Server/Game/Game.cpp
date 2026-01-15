@@ -1119,6 +1119,7 @@ namespace Gigahrush {
 		res["type"] = "ANSWER";
 		res["content"]["type"] = "Move";
 		res["content"]["res"] = "";
+		res["content"]["look"] = nlohmann::json::object();
 
 		std::vector<std::vector<int>> mask = ply->floor->floorMask;
 
@@ -1147,7 +1148,6 @@ namespace Gigahrush {
 			if (it->location.X == posX && it->location.Y == posY) {
 				ply->location = it;
 				res["content"]["res"] = "Вы переместились";
-				res["content"]["look"] = nlohmann::json::object();
 				res["content"]["look"] = nlohmann::json::parse(Look(ply));
 				return res.dump();
 			}
