@@ -182,7 +182,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 			logs.push_back(ftxui::text(""));
 
 			logs.push_back(ftxui::hflow({
-				ftxui::paragraph("Из этой локации вы можете подняться на этаж выше") | ftxui::color(DECORATE_COLOR)
+				ftxui::paragraph("Из этой локации вы можете подняться на этаж выше") | ftxui::color(ITEM_COLOR)
 			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 
@@ -190,7 +190,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 			logs.push_back(ftxui::text(""));
 
 			logs.push_back(ftxui::hflow({
-				ftxui::paragraph("Из этой локации вы можете опуститься на этаж ниже") | ftxui::color(DECORATE_COLOR)
+				ftxui::paragraph("Из этой локации вы можете опуститься на этаж ниже") | ftxui::color(ITEM_COLOR)
 				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 
