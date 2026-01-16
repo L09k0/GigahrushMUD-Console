@@ -1660,7 +1660,7 @@ namespace Gigahrush {
 			ply->floor = flrToChange;
 		}
 
-		return res;
+		return res.dump();
 	}
 
 	std::string Game::LookItem(std::shared_ptr<Player> ply, std::string item) {

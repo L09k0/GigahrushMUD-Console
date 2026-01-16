@@ -233,7 +233,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 	else if (obj["content"]["type"] == "Craft") {
 		if (obj["content"]["noItemFound"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
-				ftxui::paragraph("Такой предмет не найдет") | ftxui::color(ENEMY_COLOR)
+				ftxui::paragraph("Такой предмет не найден") | ftxui::color(ENEMY_COLOR)
 			}));
 			return;
 		}
@@ -304,7 +304,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 			return;
 		}
 		if (obj["content"]["changed"].get<bool>() == true) {
-			if (obj["content"]["moveType"] == 1) {
+			if (obj["content"]["moveType"].get<int>() == 1) {
 				logs.push_back(ftxui::hflow({
 					ftxui::paragraph("Вы поднялись на ") | ftxui::color(DECORATE_COLOR),
 					ftxui::paragraph(std::to_string(obj["content"]["changedFloor"].get<int>())) | ftxui::color(ITEM_COLOR),
