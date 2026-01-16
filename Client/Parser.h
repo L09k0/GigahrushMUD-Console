@@ -426,6 +426,29 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 			++c;
 		}
 	}
+	else if (obj["content"]["type"] == "PlayersInRoom") {
+		std::vector<std::string> plys = obj["content"]["players"].get<std::vector<std::string>>();
+
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Игроки в этой комнате: ") | ftxui::color(DECORATE_COLOR)
+		}));
+
+		c = 1;
+
+		for (auto it : plys) {
+			logs.push_back(ftxui::hflow({
+				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ITEM_COLOR)
+				}));
+			++c;
+		}
+		return;
+	}
+	else if (obj["content"]["type"] == "") {
+
+	}
+	else if (obj["content"]["type"] == "") {
+
+	}
 	else if (obj["content"]["type"] == "") {
 
 	}

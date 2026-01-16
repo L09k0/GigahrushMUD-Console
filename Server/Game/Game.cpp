@@ -2182,6 +2182,7 @@ namespace Gigahrush {
 	}
 
 	std::string Game::CurrentPlayers(std::shared_ptr<Player> ply) {
+		/*
 		std::string res = "Игроки в текущей комнате:";
 		size_t c = 1;
 		for (auto& it : gamedata.players) {
@@ -2190,7 +2191,20 @@ namespace Gigahrush {
 			}
 		}
 
-		return res;
+		return res;*/
+
+		nlohmann::json res;
+		res["type"] = "ANSWER";
+		res["content"]["type"] = "PlayersInRoom";
+		res["content"]["players"] = nlohmann::json::array();
+
+		for (auto& it : gamedata.players) {
+			if (it->location->location == ply->location->location) {
+				res["content"]["players"].push_back(it->username);
+			}
+		}
+
+		return res.dump(); 
 	}
 
 	void Game::LoadConfig() {
