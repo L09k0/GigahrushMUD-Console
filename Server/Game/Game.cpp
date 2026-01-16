@@ -1603,11 +1603,13 @@ namespace Gigahrush {
 			if (rand() % 100 < 5) {
 				rmm->isBroken = true;
 				res["content"]["isPlayerBrokeElevator"] = true;
+				return res.dump();
 			}
 		}
 
 		if (rmm != nullptr && rmm->isBroken == true) {
 			res["content"]["isElevatorBroken"] = true;
+			return res.dump();
 		}
 
 		if (ply->location->isExit == true) {
