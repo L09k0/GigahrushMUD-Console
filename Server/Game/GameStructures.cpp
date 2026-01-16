@@ -1,5 +1,6 @@
 ﻿#include "GameStructures.h"
 #include <algorithm>
+#include "nlohmann/json.hpp"
 
 namespace Gigahrush {
 	Item::Item(int _ID, const std::string& _name, const std::string& _description, const std::string& _useDescription, bool _canSpawn) :
@@ -83,6 +84,7 @@ namespace Gigahrush {
 	Enemy::~Enemy() {}
 
 	std::string Enemy::Attack(std::shared_ptr<Player>& ply) {
+		/*
 		std::string res = "";
 
 		if (replics.size() == 1) {
@@ -105,7 +107,47 @@ namespace Gigahrush {
 				+ "Ваше здоровье: " + std::to_string(ply->stats.health) + "\nВаша броня: " + std::to_string(ply->stats.armor);
 		}
 
-		return res;
+		return res;*/
+
+		nlohmann::json res;
+		res["enemyName"] = name;
+		res["hasArmor"] = false;
+		res["replic"] = "";
+		res["loseHealth"] = 0;
+		res["loseArmor"] = 0;
+
+		res["currentHealth"] = 0;
+		res["currentArmor"] = 0;
+
+		if (replics.size() == 1) {
+			res["replic"] = replics[0];
+		}
+		else {
+			res["replic"] = replics[rand() % (replics.size() - 1)];
+		}
+
+		if (ply->stats.armor > 0) {
+			ply->stats.health = std::clamp(ply->stats.health - (attack / 2), 0, 100);
+			ply->stats.armor = std::clamp(ply->stats.armor - (attack / 2), 0, 100);
+
+			res["loseHealth"] = attack / 2;
+			res["loseArmor"] = attack / 2;
+
+			res["currentHealth"] = ply->stats.health;
+			res["currentArmor"] = ply->stats.armor;
+
+			res["hasArmor"] = true;
+		}
+		else {
+			ply->stats.health = std::clamp(ply->stats.health - attack, 0, 100);
+
+			res["loseHealth"] = attack;
+
+			res["currentHealth"] = ply->stats.health;
+			res["currentArmor"] = ply->stats.armor;
+		}
+
+		return res.dump();
 	}
 
 	std::string Weapon::equip(std::shared_ptr<Player>& ply) {

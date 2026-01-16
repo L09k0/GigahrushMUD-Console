@@ -1,5 +1,60 @@
 ﻿#pragma once
 
+void addEnemyAttack(std::vector<ftxui::Element>& logs, const nlohmann::json& enemyStep) {
+	logs.push_back(ftxui::hflow({
+		ftxui::text(enemyStep["enemyName"].get<std::string>()) | ftxui::color(ENEMY_COLOR),
+		ftxui::text(" сказал: ") | ftxui::color(DECORATE_COLOR),
+		ftxui::text(enemyStep["replic"].get<std::string>()) | ftxui::color(ENEMY_COLOR)
+	}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+
+	if (enemyStep["hasArmor"].get<bool>() == true) {
+		logs.push_back(ftxui::hflow({
+			ftxui::text(enemyStep["enemyName"].get<std::string>()) | ftxui::color(ENEMY_COLOR),
+			ftxui::text(" ударил вас на ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["loseHealth"].get<int>())) | ftxui::color(ENEMY_COLOR),
+			ftxui::text(" урона и снёс вам ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["loseArmor"].get<int>())) | ftxui::color(ENEMY_COLOR),
+			ftxui::text(" единиц брони.") | ftxui::color(DECORATE_COLOR)
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Ваше здоровье: ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["currentHealth"].get<int>())) | ftxui::color(ITEM_COLOR),
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Ваша броня: ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["currentArmor"].get<int>())) | ftxui::color(ITEM_COLOR),
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+	}
+	else {
+		logs.push_back(ftxui::hflow({
+			ftxui::text(enemyStep["enemyName"].get<std::string>()) | ftxui::color(ENEMY_COLOR),
+			ftxui::text(" ударил вас на ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["loseHealth"].get<int>())) | ftxui::color(ENEMY_COLOR),
+			ftxui::text(" урона.") | ftxui::color(DECORATE_COLOR),
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Ваше здоровье: ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["currentHealth"].get<int>())) | ftxui::color(ITEM_COLOR),
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Ваша броня: ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(std::to_string(enemyStep["currentArmor"].get<int>())) | ftxui::color(ITEM_COLOR),
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+	}
+}
+
+void addPlayerDeath(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
+	if (obj["isDead"].get<bool>() != true) { return; }
+
+	logs.push_back(ftxui::hflow({
+		ftxui::paragraph("Вы умерли, ваши вещи остались в комнате [") | ftxui::color(DECORATE_COLOR),
+		ftxui::paragraph(std::to_string(obj["x"].get<int>())) | ftxui::color(DECORATE_COLOR), ftxui::paragraph(", ") | ftxui::color(DECORATE_COLOR),
+		ftxui::paragraph(std::to_string(obj["y"].get<int>())) | ftxui::color(DECORATE_COLOR), ftxui::text("] на ") | ftxui::color(DECORATE_COLOR),
+		ftxui::paragraph(std::to_string(obj["Floor"].get<int>())) | ftxui::color(DECORATE_COLOR),
+		ftxui::text(" этаже") | ftxui::color(DECORATE_COLOR)
+	}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50)) ;
+}
+
 void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 	size_t c = 1;
 
@@ -143,24 +198,24 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["canPickup"] == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Вы не можете подбирать предметы пока в комнате есть враги!") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 		else {
 			if (obj["content"]["isInventoryFull"] == true) {
 				logs.push_back(ftxui::hflow({
 					ftxui::text("Ваш инвентарь полон!") | ftxui::color(ENEMY_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			}
 			else {
 				if (obj["content"]["pickuped"].get<bool>() == true) {
 					logs.push_back(ftxui::hflow({
 						ftxui::text("Вы подобрали ") | ftxui::color(DECORATE_COLOR), ftxui::text(obj["content"]["item"].get<std::string>()) | ftxui::color(ITEM_COLOR)
-					}));
+					}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 				}
 				else {
 					logs.push_back(ftxui::hflow({
 						ftxui::text("Этого предмета нет в комнате") | ftxui::color(ENEMY_COLOR)
-					}));
+					}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 				}
 			}
 		}
@@ -170,12 +225,12 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["itemFound"] == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("У вас нет этого предмета") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 		else {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Вы выбросили ") | ftxui::color(DECORATE_COLOR), ftxui::text(obj["content"]["dropped"].get<std::string>()) | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 		return;
 	}
@@ -183,47 +238,47 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Имя: ") | ftxui::color(DECORATE_COLOR), ftxui::text(obj["content"]["username"].get<std::string>()) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Уровень: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["level"].get<int>())) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Текущий опыт: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["exp"].get<int>())) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Опыта до следующего уровня: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["expToLU"].get<int>())) | ftxui::color(ITEM_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Вместимость инвентаря: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["maxInventory"].get<int>())) | ftxui::color(ITEM_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Здоровье: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["health"].get<int>())) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Броня: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["armor"].get<int>())) | ftxui::color(ITEM_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Навык владения оружием: ") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(obj["content"]["weaponSkill"].get<int>())) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		if (obj["content"]["currentWeapon"] != "") {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Текущее оружие: ") | ftxui::color(DECORATE_COLOR), ftxui::text(obj["content"]["currentWeapon"].get<std::string>()) | ftxui::color(ITEM_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		}
 		return;
 	}
 	else if (obj["content"]["type"] == "Inventory") {
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Инвентарь: ") | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		std::vector<std::string> invItems = obj["content"]["items"].get<std::vector<std::string>>();
 		c = 1;
 		for (auto it : invItems) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ITEM_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			++c;
 		}
 		return;
@@ -231,32 +286,44 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 	else if (obj["content"]["type"] == "LookItem") {
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph(obj["content"]["res"].get<std::string>()) | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 		return;
 	}
 	else if (obj["content"]["type"] == "UseItem") {
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph(obj["content"]["res"].get<std::string>()) | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+
+		nlohmann::json enemyStep = obj["content"]["enemyStep"].get<nlohmann::json>();
+
+		if (!enemyStep.empty()) {
+			addEnemyAttack(logs, enemyStep);
+		}
+
+		nlohmann::json playerDeath = obj["content"]["checkPlayerDeath"].get<nlohmann::json>();
+
+		if (!playerDeath.empty()) {
+			addPlayerDeath(logs, playerDeath);
+		}
 		return;
 	}
 	else if (obj["content"]["type"] == "Craft") {
 		if (obj["content"]["noItemFound"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Такой предмет не найден") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["noResources"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("У вас недостаточно ресурсов для крафта") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["noCraftFound"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("У этого предмета нет крафтов") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 
@@ -265,7 +332,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Вы скрафтили предмет ") | ftxui::color(DECORATE_COLOR),
 			ftxui::paragraph(obj["content"]["craftedItem"].get<std::string>()) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		logs.push_back(ftxui::text(""));
 
@@ -273,12 +340,12 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph("Потерянные предметы: ") | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		for (auto it : losted) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			++c;
 		}
 		return;
@@ -287,31 +354,31 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["isPlayerBrokeElevator"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Вы сломали лифт, вы не сможете сменить этаж пока не почините его") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["isElevatorBroken"].get<bool>() == true) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Вы не можете сменить этаж") | ftxui::color(ENEMY_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["canChange"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Вы не можете поменять этаж в этой комнате") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["canGoUp"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Вы не можете подняться выше") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["canGoDown"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::paragraph("Вы не можете опуститься ниже") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["changed"].get<bool>() == true) {
@@ -320,14 +387,14 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 					ftxui::text("Вы поднялись на ") | ftxui::color(DECORATE_COLOR),
 					ftxui::paragraph(std::to_string(obj["content"]["changedFloor"].get<int>())) | ftxui::color(ITEM_COLOR),
 					ftxui::text(" этаж") | ftxui::color(DECORATE_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			}
 			else {
 				logs.push_back(ftxui::hflow({
 					ftxui::text("Вы опустились на ") | ftxui::color(DECORATE_COLOR),
 					ftxui::paragraph(std::to_string(obj["content"]["changedFloor"].get<int>())) | ftxui::color(ITEM_COLOR),
 					ftxui::text(" этаж") | ftxui::color(DECORATE_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			}
 		}
 		return;
@@ -337,14 +404,14 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Доступные крафты: ") | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		c = 1;
 
 		for (auto it : recipes) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ITEM_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			++c;
 		}
 		return;
@@ -353,20 +420,20 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["canEquip"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Вы не можете экипировать этот предмет") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["equiped"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Не найден предмет") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Вы экипировали ") | ftxui::color(DECORATE_COLOR),
 			ftxui::text(obj["content"]["wep"].get<std::string>()) | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		return;
 	}
@@ -374,17 +441,17 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["canFixThisRoom"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("В этой комнате нечего чинить") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 		if (obj["content"]["haveResources"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("У вас недостаточно ресурсов для починки") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Вам необходимо: ") | ftxui::color(DECORATE_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 			nlohmann::json needrepair = obj["content"]["needRes"].get<nlohmann::json>();
 
@@ -394,7 +461,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 				logs.push_back(ftxui::hflow({
 					ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it["name"].get<std::string>()) | ftxui::color(ITEM_COLOR),
 					ftxui::text(" (") | ftxui::color(DECORATE_COLOR), ftxui::text(std::to_string(it["count"].get<int>())) | ftxui::color(DECORATE_COLOR), ftxui::text(" штуки)") | ftxui::color(DECORATE_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 				++c;
 			}
 
@@ -403,17 +470,17 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		if (obj["content"]["isExitBroken"].get<bool>() == false) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text("Выход не сломан") | ftxui::color(ENEMY_COLOR)
-			}));
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			return;
 		}
 
 		logs.push_back(ftxui::hflow({
 				ftxui::text("Вы починили выход!") | ftxui::color(ITEM_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Вы потеряли: ") | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		std::vector<std::string> losteditems = obj["content"]["lostedItems"].get<std::vector<std::string>>();
 
@@ -422,7 +489,7 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		for (auto it : losteditems) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ITEM_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			++c;
 		}
 	}
@@ -431,20 +498,53 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 
 		logs.push_back(ftxui::hflow({
 			ftxui::text("Игроки в этой комнате: ") | ftxui::color(DECORATE_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 
 		c = 1;
 
 		for (auto it : plys) {
 			logs.push_back(ftxui::hflow({
 				ftxui::text(std::to_string(c) + ". ") | ftxui::color(DECORATE_COLOR), ftxui::text(it) | ftxui::color(ITEM_COLOR)
-				}));
+				}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			++c;
 		}
 		return;
 	}
-	else if (obj["content"]["type"] == "") {
+	else if (obj["content"]["type"] == "Battle") {
+		if (obj["content"]["enemyInBattle"].get<bool>() == true) {
+			logs.push_back(ftxui::hflow({
+				ftxui::text(obj["content"]["enemyInBattlePlayerName"].get<std::string>()) | ftxui::color(ITEM_COLOR),
+				ftxui::text(" уже дерётся с этим врагом!") | ftxui::color(DECORATE_COLOR),
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+			return;
+		}
+		if (obj["content"]["startedBattle"].get<bool>() == false) {
+			logs.push_back(ftxui::hflow({
+				ftxui::text("Этого врага нет в комнате!") | ftxui::color(ENEMY_COLOR),
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+			return;
+		}
 
+		logs.push_back(ftxui::hflow({
+			ftxui::text("Вы вступили в битву с ") | ftxui::color(DECORATE_COLOR),
+			ftxui::text(obj["content"]["startedBattleWith"].get<std::string>()) | ftxui::color(ENEMY_COLOR)
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+
+		//Check death
+
+		nlohmann::json enemyStep = obj["content"]["enemyStep"].get<nlohmann::json>();
+
+		if (!enemyStep.empty()) {
+			addEnemyAttack(logs, enemyStep);
+		}
+
+		nlohmann::json playerDeath = obj["content"]["checkPlayerDeath"].get<nlohmann::json>();
+
+		if (!playerDeath.empty()) {
+			addPlayerDeath(logs, playerDeath);
+		}
+
+		return;
 	}
 	else if (obj["content"]["type"] == "") {
 
@@ -458,16 +558,16 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 	else if (obj["content"]["type"] == "unknown") {
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph("Неизвестная команда!") | ftxui::color(ENEMY_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 	}
 	else if (obj["content"]["type"] == "inBattle") {
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph("Вы не можете использовать эту команду в бою!") | ftxui::color(ENEMY_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 	}
 	else if (obj["content"]["type"] == "badSyntax") {
 		logs.push_back(ftxui::hflow({
 			ftxui::paragraph("Неправильный синтаксис!") | ftxui::color(ENEMY_COLOR)
-		}));
+		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 	}
 }

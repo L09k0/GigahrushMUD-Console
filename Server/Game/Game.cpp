@@ -1810,6 +1810,9 @@ namespace Gigahrush {
 		res["type"] = "ANSWER";
 		res["content"]["type"] = "UseItem";
 		res["content"]["res"] = "У вас нет этого предмета";
+		res["content"]["enemyStep"] = nlohmann::json::object();
+		res["content"]["checkPlayerDeath"] = nlohmann::json::object();
+		res["content"]["playerInBattle"] = false;
 
 		for (int i = 0; i < ply->inventory.size(); i++) {
 			if (ply->inventory[i]->name == item) {
@@ -1823,8 +1826,9 @@ namespace Gigahrush {
 		}
 
 		if (ply->battleStatus.status == InBattle) {
-			res["content"]["res"] += ply->battleStatus.enemy->Attack(ply);
-			res["content"]["res"] += CheckPlayerDeath(ply);
+			res["content"]["playerInBattle"] = true;
+			res["content"]["enemyStep"] = nlohmann::json::parse(ply->battleStatus.enemy->Attack(ply));
+			res["content"]["checkPlayerDeath"] = nlohmann::json::parse(CheckPlayerDeath(ply));
 		}
 
 		return res.dump();
@@ -1928,6 +1932,7 @@ namespace Gigahrush {
 	}
 
 	std::string Game::Battle(std::shared_ptr<Player> ply, std::string enemyName) {
+		/*
 		std::string res = "Этого врага нет в комнате";
 
 		for (auto& it : ply->location->enemies) {
@@ -1951,10 +1956,48 @@ namespace Gigahrush {
 			}
 		}
 
-		return res;
+		return res;*/
+
+		nlohmann::json res;
+		res["type"] = "ANSWER";
+		res["content"]["type"] = "Battle";
+		res["content"]["enemyInBattle"] = false;
+		res["content"]["enemyInBattlePlayerName"] = "";
+
+		res["content"]["startedBattle"] = false;
+		res["content"]["startedBattleWith"] = "";
+
+		res["content"]["enemyStep"] = nlohmann::json::object();
+		res["content"]["checkPlayerDeath"] = nlohmann::json::object();
+
+		for (auto& it : ply->location->enemies) {
+			if (it->name == enemyName) {
+				if (it->battleWith != nullptr) {
+					res["content"]["enemyInBattle"] = true;
+					res["content"]["enemyInBattlePlayerName"] = it->battleWith->username;
+				}
+				else {
+					ply->battleStatus.status = InBattle;
+					ply->battleStatus.enemy = it;
+					it->battleWith = ply;
+					res["content"]["startedBattle"] = true;
+					res["content"]["startedBattleWith"] = it->name;
+
+					if (rand() % 100 <= 50) {
+						res["content"]["enemyStep"] = nlohmann::json::parse(ply->battleStatus.enemy->Attack(ply));
+						res["content"]["checkPlayerDeath"] = nlohmann::json::parse(CheckPlayerDeath(ply));
+					}
+
+					break;
+				}
+			}
+		}
+
+		return res.dump();
 	}
 
 	std::string Game::CheckPlayerDeath(std::shared_ptr<Player> ply) {
+		/*
 		std::string res = "";
 
 		if (ply->stats.health <= 0) {
@@ -2005,7 +2048,62 @@ namespace Gigahrush {
 			}
 		}
 
-		return res;
+		return res;*/
+
+		nlohmann::json res;
+		res["isDead"] = false;
+		res["x"] = ply->location->location.X;
+		res["y"] = ply->location->location.X;
+		res["Floor"] = ply->location->location.F;
+
+		if (ply->stats.health <= 0) {
+			res["isDead"] = true;
+
+			ply->battleStatus.enemy->battleWith = nullptr;
+			ply->battleStatus.enemy = nullptr;
+			ply->battleStatus.status = NotInBattle;
+
+			//inventory drop
+
+			for (int i = ply->inventory.size() - 1; i >= 0; i--) {
+				if (ply->inventory[i]->ID == ply->stats.weaponEqID) {
+					ply->stats.weaponEqID = 0;
+					ply->stats.wepEq = false;
+				}
+
+				ply->location->items.push_back(ply->inventory[i]->clone());
+				std::string phrase = "";
+				for (auto& it : configurator.config.roomDescs) {
+					if (ply->location->ID == it.ID) {
+						if (it.itemDescs.size() == 1) {
+							phrase = std::vformat(std::string_view(it.itemDescs[0]), std::make_format_args(ply->inventory[i]->name));
+						}
+						else {
+							phrase = std::vformat(std::string_view(it.itemDescs[rand() % it.itemDescs.size()]), std::make_format_args(ply->inventory[i]->name));
+						}
+					}
+				}
+				ply->location->itemDescription.push_back(RoomDescElement(ply->inventory[i]->ID, phrase));
+				ply->inventory.erase(ply->inventory.begin() + i);
+			}
+
+			//stats reset
+
+			ply->stats.health = 100;
+			ply->stats.armor = 0;
+			ply->stats.weaponSkill /= 2;
+			ply->stats.currentExp = 0;
+			ply->stats.inventoryMaxSize /= 2; //configurator.config.maxInventorySize;
+
+			for (auto& it : gamedata.floors) {
+				if (it->level == 1) {
+					ply->floor = it;
+					ply->location = it->rooms[rand() % it->rooms.size()];
+				}
+			}
+		}
+
+		return res.dump(); 
 	}
 
 	std::string Game::Equip(std::shared_ptr<Player> ply, std::string wepName) {

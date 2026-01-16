@@ -82,7 +82,7 @@ namespace Gigahrush {
 
 			void Info();
 
-			std::string CheckPlayerDeath(std::shared_ptr<Player>);
+			std::string CheckPlayerDeath(std::shared_ptr<Player>); // JSON Done
 
 			//Commands
 
@@ -101,7 +101,7 @@ namespace Gigahrush {
 			std::string EnableCrafts(std::shared_ptr<Player>); // JSON Done
 			std::string UseItem(std::shared_ptr<Player>, std::string); // JSON Done (remake system)
 			std::string Attack(std::shared_ptr<Player>); //
-			std::string Battle(std::shared_ptr<Player>, std::string); //
+			std::string Battle(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string Equip(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string RepairExit(std::shared_ptr<Player>); // JSON Done
 			std::string CurrentPlayers(std::shared_ptr<Player>); // JSON Done
