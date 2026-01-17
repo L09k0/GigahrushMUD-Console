@@ -1144,7 +1144,9 @@ namespace Gigahrush {
 		nlohmann::json res;
 		res["type"] = "ANSWER";
 		res["content"]["type"] = "Move";
-		res["content"]["res"] = "";
+		res["content"]["canMove"] = true;
+		res["content"]["moved"] = false;
+		res["content"]["unknownSide"] = false;
 		res["content"]["look"] = nlohmann::json::object();
 
 		std::vector<std::vector<int>> mask = ply->floor->floorMask;
@@ -1157,29 +1159,29 @@ namespace Gigahrush {
 		else if (side == "запад") { posX -= 1; }
 		else if (side == "восток") { posX += 1; }
 		else { 
-			res["content"]["res"] = "Неизвестная сторона"; 
+			res["content"]["unknownSide"] = true;
 			return res.dump();
 		}
 
 		if (posY < 0 || posY >= mask.size() || posX < 0 || posX >= mask[0].size()) { 
-			res["content"]["res"] = "Вы не можете пойти в эту сторону";
+			res["content"]["canMove"] = false;
 			return res.dump();
 		}
 		if (mask[posY][posX] != 1) { 
-			res["content"]["res"] = "Вы не можете пойти в эту сторону";
+			res["content"]["canMove"] = false;
 			return res.dump();
 		}
 
 		for (auto& it : ply->floor->rooms) {
 			if (it->location.X == posX && it->location.Y == posY) {
 				ply->location = it;
-				res["content"]["res"] = "Вы переместились";
+				res["content"]["moved"] = true;
 				res["content"]["look"] = nlohmann::json::parse(Look(ply));
 				return res.dump();
 			}
 		}
 
-		res["content"]["res"] = "Вы не можете пойти в эту сторону";
+		res["content"]["canMove"] = false;
 		return res.dump();
 	}
 

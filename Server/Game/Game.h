@@ -91,7 +91,7 @@ namespace Gigahrush {
 			std::string Map(std::shared_ptr<Player>); // JSON Done
 			std::string Me(std::shared_ptr<Player>);  // JSON Done
 			std::string Look(std::shared_ptr<Player>); // JSON Done
-			std::string Move(std::shared_ptr<Player>, std::string); // JSON Done (remake system)
+			std::string Move(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string Craft(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string DropItem(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string PickupItem(std::shared_ptr<Player>, std::string); // JSON Done

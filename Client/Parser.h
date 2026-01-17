@@ -205,9 +205,28 @@ void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 		return;
 	}
 	else if (obj["content"]["type"] == "Move") {
-		logs.push_back(ftxui::hflow({
-			ftxui::paragraph(obj["content"]["res"].get<std::string>()) | ftxui::color(DECORATE_COLOR)
-		}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		if (obj["content"]["canMove"].get<bool>() == false) {
+			logs.push_back(ftxui::hflow({
+				ftxui::paragraph("Вы не можете пойти в эту сторону!") | ftxui::color(ENEMY_COLOR)
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+			return;
+		}
+		if (obj["content"]["unknownSide"].get<bool>() == true) {
+			logs.push_back(ftxui::hflow({
+				ftxui::paragraph("Неизвестная сторона!") | ftxui::color(ENEMY_COLOR)
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+			return;
+		}
+
+		if (obj["content"]["moved"].get<bool>() == true) {
+			logs.push_back(ftxui::hflow({
+				ftxui::paragraph("Вы переместились!") | ftxui::color(ITEM_COLOR)
+			}) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
+		}
+		else {
+			return;
+		}
+
 		nlohmann::json lookObj = obj["content"]["look"].get<nlohmann::json>();
 		if (!lookObj.empty()) { addLog(logs,lookObj); }
 
