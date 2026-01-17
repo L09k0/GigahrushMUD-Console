@@ -24,26 +24,53 @@ namespace Gigahrush {
 		Item(_ID, _name, _description, _useDescription, _canSpawn), heal(_heal) {}
 
 	std::pair<std::string, bool> Component::use(std::shared_ptr<Player>& ply) const {
-		return std::pair<std::string, bool>(std::string("Вы не можете использовать компонент!"), false);
+		nlohmann::json res;
+		res["type"] = "Component";
+
+		return std::pair<std::string, bool>(res.dump(), false);
 	}
 
 	std::pair<std::string, bool> Weapon::use(std::shared_ptr<Player>& ply) const {
-		return std::pair<std::string, bool>(std::string("Вы не можете использовать оружие. Вы можете только атаковать им врага во время битвы!"), false);
+		nlohmann::json res;
+		res["type"] = "Weapon";
+
+		return std::pair<std::string, bool>(res.dump(), false);
 	}
 
 	std::pair<std::string, bool> Armor::use(std::shared_ptr<Player>& ply) const {
-		ply->stats.armor += armor;
-		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВам добавлено " + std::to_string(armor) + " единиц брони.";
-		return std::pair<std::string, bool>(res, true);
+		nlohmann::json res;
+		res["type"] = "Armor";
+		res["name"] = name;
+		res["description"] = useDescription;
+		res["armor"] = armor;
+		res["used"] = true;
+
+		if (ply->stats.armor >= 100) { 
+			res["used"] = false;
+			return std::pair<std::string, bool>(res.dump(), false);
+		}
+
+		ply->stats.armor = std::clamp(ply->stats.armor + armor, 0, 100);
+
+		return std::pair<std::string, bool>(res.dump(), true);
 	}
 
 	std::pair<std::string, bool> HealingItem::use(std::shared_ptr<Player>& ply) const {
-		if (ply->stats.health == 100) { return std::pair<std::string, bool>("Ваше здоровье уже полно", false);}
+		nlohmann::json res;
+		res["type"] = "Heal";
+		res["name"] = name;
+		res["description"] = useDescription;
+		res["heal"] = heal;
+		res["used"] = true;
+
+		if (ply->stats.health >= 100) {
+			res["used"] = false;
+			return std::pair<std::string, bool>(res.dump(), false);
+		}
 
 		ply->stats.health = std::clamp(ply->stats.health + heal, 0, 100);
 
-		std::string res = "Вы использовали " + name + ". \n" + useDescription + "\nВам добавлено " + std::to_string(heal) + " единиц здоровья.";
-		return std::pair<std::string, bool>(res, true);
+		return std::pair<std::string, bool>(res.dump(), true);
 	}
 
 	//Descs

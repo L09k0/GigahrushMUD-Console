@@ -99,7 +99,7 @@ namespace Gigahrush {
 			std::string ChangeFloor(std::shared_ptr<Player>, int); // JSON Done
 			std::string LookItem(std::shared_ptr<Player>, std::string); // JSON Done (remake system)
 			std::string EnableCrafts(std::shared_ptr<Player>); // JSON Done
-			std::string UseItem(std::shared_ptr<Player>, std::string); // JSON Done (remake system)
+			std::string UseItem(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string Attack(std::shared_ptr<Player>); // JSON Done
 			std::string Battle(std::shared_ptr<Player>, std::string); // JSON Done
 			std::string Equip(std::shared_ptr<Player>, std::string); // JSON Done

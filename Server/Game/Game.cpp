@@ -1809,15 +1809,18 @@ namespace Gigahrush {
 		nlohmann::json res;
 		res["type"] = "ANSWER";
 		res["content"]["type"] = "UseItem";
-		res["content"]["res"] = "У вас нет этого предмета";
+		res["content"]["haveItem"] = false;
 		res["content"]["enemyStep"] = nlohmann::json::object();
 		res["content"]["checkPlayerDeath"] = nlohmann::json::object();
 		res["content"]["playerInBattle"] = false;
 
+		res["content"]["item"] = nlohmann::json::object();
+
 		for (int i = 0; i < ply->inventory.size(); i++) {
 			if (ply->inventory[i]->name == item) {
 				std::pair<std::string, bool> useRes = ply->inventory[i]->use(ply);
-				res["content"]["res"] = useRes.first;
+				res["content"]["item"] = nlohmann::json::parse(useRes.first);
+				res["content"]["haveItem"] = true;
 				if (useRes.second == true) {
 					ply->inventory.erase(ply->inventory.begin() + i);
 				}
