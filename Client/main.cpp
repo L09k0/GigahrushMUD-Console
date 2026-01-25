@@ -3,6 +3,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <deque>
 
 #include "asio.hpp"
 #include "Client.h"
@@ -137,7 +138,7 @@ void UpdateMsgThread() {
 				}
 			}
 			catch (std::exception& er) {
-				logs.push_back(ftxui::text(er.what()));
+				logs.push_back(ftxui::text(er.what()) | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 50));
 			}
 
 			screen.PostEvent(ftxui::Event::Special("refresh"));
@@ -309,8 +310,6 @@ int main()
 	if (bg.joinable()) {
 		bg.join();
 	}
-
-	client.~Client();
 
 	/*
 	#ifdef _WIN32

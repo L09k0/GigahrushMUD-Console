@@ -1,5 +1,9 @@
 #pragma once
 
+//Cfg
+
+constexpr unsigned short int MAX_LOGS = 55;
+
 //Main Window
 
 constexpr ftxui::Color::Palette16 MAIN_COLOR = ftxui::Color::Cyan;

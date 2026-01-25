@@ -75,6 +75,15 @@ void addLevelUp(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
 }
 
 void addLog(std::vector<ftxui::Element>& logs, const nlohmann::json& obj) {
+	//Clear log if big
+	
+	if (logs.size() > MAX_LOGS) {
+		while (logs.size() > MAX_LOGS) {
+			//logs.pop_front();
+			logs.erase(logs.begin());
+		}
+	}
+
 	size_t c = 1;
 
 	logs.push_back(ftxui::text(""));
