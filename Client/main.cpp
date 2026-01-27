@@ -147,18 +147,18 @@ void UpdateMsgThread()
 
 void MainThread() 
 {
-	//std::cout << "IP: ";
-	//std::getline(std::cin, ip);
+	std::cout << "IP: ";
+	std::getline(std::cin, ip);
 
-	//std::cout << "Port: ";
-	//std::getline(std::cin, port);
+	std::cout << "Port: ";
+	std::getline(std::cin, port);
 
-	//std::cout << "Nick: ";
-	//std::getline(std::cin, nick);
+	std::cout << "Nick: ";
+	std::getline(std::cin, nick);
 
-	ip = "127.0.0.1";
-	port = "15001";
-	nick = "Logko";
+	//ip = "127.0.0.1";
+	//port = "15001";
+	//nick = "Logko";
 
 	Connect();
 
