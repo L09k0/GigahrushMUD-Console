@@ -5,7 +5,6 @@ set(SOURCES
 
 set(HEADERS
 	Client.h
-	Config.h
 	Parser.h
 )
 
@@ -17,12 +16,6 @@ target_include_directories(GigahrushClient PRIVATE "${aud_dir}/include")
 target_link_libraries(GigahrushClient PRIVATE asio)
 target_link_libraries(GigahrushClient PRIVATE nlohmann_json)
 target_link_libraries(GigahrushClient PRIVATE ${aud_dir}/lib/audiere.lib)
-
-target_link_libraries(GigahrushClient PRIVATE 
-	ftxui::component
-	ftxui::dom
-	ftxui::screen
-)
 
 #target_compile_options(GigahrushClient PRIVATE
 #    $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
