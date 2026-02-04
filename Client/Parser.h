@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> parsers;
+std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> parserserv;
 
 void addEnemyAttack(const nlohmann::json& enemyStep)
 {
@@ -53,6 +54,11 @@ void addPlayerDeath(const nlohmann::json& obj)
         + ConvertCP1251ToUTF8("] на ")
         + std::to_string(obj["Floor"].get<int>())
         + ConvertCP1251ToUTF8(" этаже\n");
+
+    if (obj["canRespawn"].get<bool>() == false) 
+    {
+        std::cout << "Вы не можете возродиться во время самосбора, после окончания самосбора вы возродитесь автоматически!\n";
+    }
 }
 
 void addLevelUp(const nlohmann::json& obj)
@@ -821,7 +827,148 @@ void initFillANSWER()
         }
     };
 
+    // ТИПА ОШИБКА СИСИ
+    parsers["SessionError"] = [](const nlohmann::json& obj)
+    {
+        std::cout << obj["content"]["text"] << '\n';
+    };
+
+    // сомоотсос дидык
+    parsers["SamosborDeath"] = [](const nlohmann::json& obj)
+    {
+        nlohmann::json playerDeath = obj["content"]["death"].get<nlohmann::json>();
+
+        if (!playerDeath.empty()) 
+        {
+            addPlayerDeath(playerDeath);
+        }
+    };
+
+    // респусн
+    parsers["Respawn"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("Вы возродились!\n");
+    };
+
+    // ап
+    parsers["youDead"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("Вы не можете использовать команды пока мертвы!\n");
+    };
+
+    // как скрафтить вестак в минекрефтэ ?
+    parsers["RecipesItem"] = [](const nlohmann::json& obj)
+    {
+        if (obj["content"]["foundItem"].get<bool>() == false) 
+        {
+            std::cout << ConvertCP1251ToUTF8("Не найден предмет!\n");
+        }
+        else {
+            std::vector<std::string> itemRecipeNames = obj["content"]["itemsToCraft"].get<std::vector<std::string>>();
+
+            std::cout << ConvertCP1251ToUTF8("Крафты с использованием этого предмета:\n");
+
+            int c = 1;
+
+            for (auto it : itemRecipeNames) 
+            {
+                std::cout << std::to_string(c) << ConvertCP1251ToUTF8(". ") << it << '\n';
+                ++c;
+            }
+        }
+    };
+
+    // мне лень Recipe
+    parsers["Recipe"] = [](const nlohmann::json& obj)
+    {
+        if (obj["content"]["foundItem"].get<bool>() == false) 
+        {
+            std::cout << ConvertCP1251ToUTF8("Не найден предмет!\n");
+        }
+        else 
+        {
+            if (obj["content"]["foundRecipe"].get<bool>() == false) 
+            {
+                std::cout << ConvertCP1251ToUTF8("Этот предмет не крафтиться!\n");
+                return;
+            }
+
+            std::vector<std::string> RecipeNames = obj["content"]["recipe"].get<std::vector<std::string>>();
+
+            std::cout << ConvertCP1251ToUTF8("Рецепт этого предмета:\n");
+
+            int c = 1;
+
+            for (auto it : RecipeNames) 
+            {
+                std::cout << std::to_string(c) << ConvertCP1251ToUTF8(". ") << it << '\n';
+                ++c;
+            }
+        }
+    };
+
+    // тестст сообщение Дурову
+    parsers["Message"] = [](const nlohmann::json& obj)
+    {
+        std::cout << obj["content"]["from"].get<std::string>()
+            + ConvertCP1251ToUTF8(" сказал: ")
+            + obj["content"]["msg"].get<std::string>()
+            + ConvertCP1251ToUTF8("\n");
+    };
+
     parsersInitialized = true; // УГйрЭкУсИй 
+}
+
+void initFillServerMessages()
+{
+    bool parsersInitialized = false; // сУрЭкУсИй 
+
+    if (parsersInitialized) // короче чтобы не было повторного вызова а то будет badlock :D
+        return;
+
+    parserserv["NewPlayer"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("* Игрок ")
+            + obj["content"]["name"].get<std::string>()
+            + ConvertCP1251ToUTF8(" подключился!\n");
+    };
+
+    parserserv["PlayerDisconnect"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("* Игрок ")
+            + obj["content"]["name"].get<std::string>()
+            + ConvertCP1251ToUTF8(" отключился!\n");
+    };
+
+    parserserv["SamosborWait"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("* Через ")
+            + std::to_string(obj["content"]["time"].get<int>())
+            + ConvertCP1251ToUTF8(" ")
+            + ConvertCP1251ToUTF8("секунд начнётся самосбор! Спрячтесь в одном из укрытий чтобы не умереть: ");
+
+        std::vector<std::string> savePlaces = obj["content"]["savePlaces"].get<std::vector<std::string>>();
+        std::string res = "";
+
+        for (auto it : savePlaces) 
+        {
+            res += it + " ";
+        }
+
+        std::cout << res << '\n';
+    };
+
+    parserserv["SamosborStarted"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("* Начался самосбор! Переждите его в укрытие до его окончания!\n");
+    };
+
+    parserserv["SamosborEnded"] = [](const nlohmann::json& obj)
+    {
+        std::cout << ConvertCP1251ToUTF8("* Самосбор завершился, вы можете выходить из укрытий!\n");
+    };
+
+    parsersInitialized = true;
 }
 
 void JsonParser(const nlohmann::json& json) 
@@ -829,6 +976,7 @@ void JsonParser(const nlohmann::json& json)
     std::lock_guard<std::mutex> lock(mtx);
 
     initFillANSWER();
+    initFillServerMessages();
     try 
     {
         std::string responseType = json["type"];
@@ -854,7 +1002,17 @@ void JsonParser(const nlohmann::json& json)
         }
         else if (responseType == "SERVER")
         {
-            std::cout << "СЕРВЕР: " << json["content"] << "\n";
+            std::string commandType = json["content"]["type"];
+
+            auto it = parserserv.find(commandType);
+            if (it != parserserv.end())
+            {
+                it->second(json);
+            }
+            else
+            {
+                std::cout << ConvertCP1251ToUTF8("Вот это наверное не может найти такой команды -> ") << commandType << "\n";
+            }
         }
 
     }
